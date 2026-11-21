@@ -5,7 +5,7 @@ import Login from './views/Login.jsx';
 import Dashboard from './views/Dashboard.jsx';
 import Cases from './views/Cases.jsx';
 import CaseDetail from './views/CaseDetail.jsx';
-import { AdminDocs, AdminHistory, AdminSummary } from './views/Admin.jsx';
+import { AdminHistory, AdminSummary } from './views/Admin.jsx';
 
 const GESTOR_TABS = [
   { key: 'inicio', label: 'Dashboard' },
@@ -14,7 +14,6 @@ const GESTOR_TABS = [
 const ADMIN_TABS = [
   { key: 'resumen', label: 'Resumen' },
   { key: 'historial', label: 'Historial' },
-  { key: 'documentos', label: 'Documentos' },
 ];
 
 export default function App() {
@@ -47,7 +46,6 @@ export default function App() {
           <>
             {tab === 'resumen' && <AdminSummary />}
             {tab === 'historial' && <AdminHistory />}
-            {tab === 'documentos' && <AdminDocs />}
           </>
         ) : (
           <>

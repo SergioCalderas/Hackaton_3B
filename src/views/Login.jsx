@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store.jsx';
+import logo from '../assets/images/logo-3b.png';
 
 export default function Login() {
   const { dispatch } = useStore();
@@ -30,7 +31,7 @@ export default function Login() {
   return (
     <div className="login">
       <div className="login-side">
-        <span className="brand-mark big">3B</span>
+        <img className="logo-big" src={logo} alt="3B" />
         <h1>Prefactibilidad de expansión</h1>
         <p>Revisa la documentación de cada caso, valida su congruencia y decide la prefactibilidad.</p>
       </div>

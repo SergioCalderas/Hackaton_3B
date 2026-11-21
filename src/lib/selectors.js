@@ -75,3 +75,24 @@ export const fmtDate = (iso) =>
 
 export const mapsLink = (c) => `https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`;
 export const mapsEmbed = (c) => `https://maps.google.com/maps?q=${c.lat},${c.lng}&z=15&output=embed`;
+
+export const fmtDay = (iso) => new Date(iso).toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
+export const fmtHour = (iso) => new Date(iso).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+export const fmtVigencia = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+export const vigenciaVencida = (iso) => new Date(`${iso}T23:59:59`) < new Date();
+
+// Tipo de acción del historial (para color e icono)
+export const KINDS = {
+  aprobo: { label: 'Aprobó documento', icon: '✓', tone: 'green' },
+  rechazo: { label: 'Rechazó documento', icon: '✕', tone: 'red' },
+  abrio: { label: 'Abrió para revisión', icon: '👁', tone: 'amber' },
+  caso_ok: { label: 'Aceptó caso', icon: '★', tone: 'navy' },
+  caso_no: { label: 'Rechazó caso', icon: '⚑', tone: 'red' },
+};
+export function actionKind(action) {
+  if (action.startsWith('Aceptó la prefactibilidad')) return 'caso_ok';
+  if (action.startsWith('Rechazó la prefactibilidad')) return 'caso_no';
+  if (action.startsWith('Aprobó')) return 'aprobo';
+  if (action.startsWith('Rechazó')) return 'rechazo';
+  return 'abrio';
+}
