@@ -16,9 +16,13 @@ Frontend en React + Vite para evaluar la prefactibilidad de casos de expansión.
    npm install
    npm run dev
    ```
-4. Abre la dirección que imprime la terminal (normalmente https://localhost:5173 — usa HTTPS con certificado local autofirmado: acepta la advertencia del navegador la primera vez) e inicia sesión con una cuenta de demostración.
+4. Abre la dirección que imprime la terminal (normalmente https://localhost:5173 — solo HTTPS) e inicia sesión con una cuenta de demostración.
 
 Para generar la versión de producción: `npm run build` (queda en `dist/`).
+
+### Canal HTTPS de confianza (sin advertencias)
+
+Una sola vez por equipo: instala [mkcert](https://github.com/FiloSottile/mkcert) (`winget install FiloSottile.mkcert`) y ejecuta `npm run https:setup`. Crea una autoridad local de confianza y un certificado para `localhost` en `certs/` (no se sube a git). Windows pedirá confirmar la instalación de la autoridad. Sin este paso, el servidor usa un certificado autofirmado y el navegador mostrará una advertencia.
 
 ## Inicio de sesión con Google
 

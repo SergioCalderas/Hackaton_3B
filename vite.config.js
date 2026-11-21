@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import basicSsl from '@vitejs/plugin-basic-ssl';
+import fs from 'node:fs';
 
 // Cabeceras de seguridad (desarrollo y preview). HSTS se define en el hosting (ver public/_headers).
 const headers = {
@@ -31,9 +32,13 @@ const cspPlugin = {
   transformIndexHtml: (html) => html.replace('<head>', `<head>\n    <meta http-equiv="Content-Security-Policy" content="${csp}" />`),
 };
 
-// basicSsl() fuerza HTTPS también en desarrollo (certificado local autofirmado)
+// Canal seguro local: certificado de confianza creado con mkcert (npm run https:setup).
+// Si no existe, se usa un certificado autofirmado (el navegador mostrará una advertencia).
+const hasCert = fs.existsSync('certs/localhost.pem') && fs.existsSync('certs/localhost-key.pem');
+const https = hasCert ? { key: fs.readFileSync('certs/localhost-key.pem'), cert: fs.readFileSync('certs/localhost.pem') } : undefined;
+
 export default defineConfig({
-  plugins: [react(), basicSsl(), cspPlugin],
-  server: { headers, proxy: { '/api': 'http://127.0.0.1:5000' } },
-  preview: { headers },
+  plugins: [react(), ...(hasCert ? [] : [basicSsl()]), cspPlugin],
+  server: { headers, https, proxy: { '/api': 'http://127.0.0.1:5000' } },
+  preview: { headers, https },
 });
