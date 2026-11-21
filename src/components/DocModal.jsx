@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Dot, Pill, Progress } from './ui.jsx';
 import { CHECKS } from '../lib/seed.js';
-import { DOC_LABEL, docSemaphore, docState, fmtDate } from '../lib/selectors.js';
+import { DOC_LABEL, docSemaphore, docState, fmtDate, fmtVigencia, vigenciaVencida } from '../lib/selectors.js';
 
 const SEM_TEXT = { ok: 'Coincide', warn: 'Revisar', fail: 'Diferencia' };
 
@@ -39,13 +39,20 @@ export default function DocModal({ docId, onClose }) {
 
         <Progress label="Completitud del documento" value={d.completitud} tone={incomplete ? 'amber' : 'green'} />
 
-        <div className="doc-preview">
-          <span>📄</span>
-          <div>
-            <strong>{d.file}</strong>
-            <div className="muted small">Versión {d.versions[d.versions.length - 1].v} · vista previa disponible al conectar el backend</div>
+        {d.vigencia && (
+          <p className={`notice ${vigenciaVencida(d.vigencia) ? 'notice-red' : 'notice-green'}`}>
+            <strong>Vigencia del predial:</strong> hasta el {fmtVigencia(d.vigencia)} · {vigenciaVencida(d.vigencia) ? 'Vencida' : 'Vigente'}
+          </p>
+        )}
+
+        {d.pdf ? (
+          <div className="pdf-box">
+            <iframe title={d.file} src={d.pdf} />
+            <a className="btn btn-ghost btn-sm" href={d.pdf} target="_blank" rel="noreferrer">Abrir documento en otra pestaña ↗</a>
           </div>
-        </div>
+        ) : (
+          <div className="doc-preview"><span>📄</span><div><strong>Documento no cargado</strong><div className="muted small">Aún no hay archivo para visualizar.</div></div></div>
+        )}
 
         <h4>Validaciones {sem !== 'ok' && <span className={`sem-label sem-${sem}`}>requiere revisión</span>}</h4>
         <ul className="checks">

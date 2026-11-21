@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useReducer } from 'react';
 import { buildSeed } from './lib/seed.js';
 import { DOC_LABEL, docsOf, canAcceptCase } from './lib/selectors.js';
 
-const KEY = '3b-prefactibilidad-v1';
+const KEY = '3b-prefactibilidad-v2';
 const Ctx = createContext(null);
 
 function load() {

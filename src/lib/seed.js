@@ -21,6 +21,9 @@ export const USERS = [
   { id: 'u3', name: 'Paola Ríos', email: 'admin@3b.mx', password: '3b123', role: 'admin' },
 ];
 
+const NO_PDF = new Set(['c5-uso_suelo']);
+const PREDIAL_YEAR = { c1: 2025, c2: 2025, c3: 2025, c4: 2024, c5: 2025, c6: 2025, c7: 2024, c8: 2025 };
+
 const ago = (h) => new Date(Date.now() - h * 3600e3).toISOString();
 
 const FILES = {
@@ -34,7 +37,7 @@ const FILES = {
 // Por documento: c = completitud (0-100), fails/warns = {check: nota}, st = estado de revisión, text = conclusión o motivo
 const CASES = [
   {
-    id: 'c1', name: 'Melchor Ocampo III', address: 'Melchor Ocampo, Estado de México', owner: 'Inmobiliaria Ocampo S.A. de C.V.', lat: 19.7106, lng: -99.1389,
+    id: 'c1', code: 'CASO-001', name: 'Melchor Ocampo III', address: 'Melchor Ocampo, Estado de México', owner: 'Inmobiliaria Ocampo S.A. de C.V.', lat: 19.7106, lng: -99.1389,
     decision: { value: 'aceptada', by: 'u1', at: ago(30), text: 'Documentación congruente. Uso comercial minisúper vigente.' },
     docs: {
       escrituras: { st: 'aprobado', text: 'Titularidad y superficie correctas.' },
@@ -45,7 +48,7 @@ const CASES = [
     },
   },
   {
-    id: 'c2', name: 'Sor Juana', address: 'Av. Sor Juana Inés de la Cruz, Tecámac', owner: 'Desarrollos Sor Juana S.A.', lat: 19.7133, lng: -98.969,
+    id: 'c2', code: 'CASO-002', name: 'Sor Juana', address: 'Av. Sor Juana Inés de la Cruz, Tecámac', owner: 'Desarrollos Sor Juana S.A.', lat: 19.7133, lng: -98.969,
     docs: {
       escrituras: { st: 'aprobado', text: 'Correcta.' },
       uso_suelo: { st: 'aprobado', text: 'Vigente.' },
@@ -54,16 +57,16 @@ const CASES = [
       numero_oficial: {},
     },
   },
-  { id: 'c3', name: 'Tepeji del Río 5', address: 'Tepeji del Río de Ocampo, Hidalgo', owner: 'Grupo Tepeji S.A.', lat: 19.905, lng: -99.344, docs: {} },
+  { id: 'c3', code: 'CASO-003', name: 'Tepeji del Río 5', address: 'Tepeji del Río de Ocampo, Hidalgo', owner: 'Grupo Tepeji S.A.', lat: 19.905, lng: -99.344, docs: {} },
   {
-    id: 'c4', name: 'Tultepec Insurgentes', address: 'Av. Insurgentes, Tultepec', owner: 'Carlos Medina Ruiz', lat: 19.685, lng: -99.128,
+    id: 'c4', code: 'CASO-004', name: 'Tultepec Insurgentes', address: 'Av. Insurgentes, Tultepec', owner: 'Carlos Medina Ruiz', lat: 19.685, lng: -99.128,
     docs: {
       escrituras: { st: 'aprobado', text: 'Correcta.' },
       predial: { st: 'rechazado', fails: { propietario: 'Predial a nombre de Ana Medina; escritura a nombre de Carlos Medina.' }, text: 'Titular del predial distinto al de la escritura.' },
     },
   },
   {
-    id: 'c5', name: 'Tultepec San Juan', address: 'San Juan, Tultepec', owner: 'Inmuebles San Juan S.C.', lat: 19.69, lng: -99.1,
+    id: 'c5', code: 'CASO-005', name: 'Tultepec San Juan', address: 'San Juan, Tultepec', owner: 'Inmuebles San Juan S.C.', lat: 19.69, lng: -99.1,
     docs: {
       uso_suelo: { c: 0 },
       alineamiento: { c: 60, warns: { predio: 'Falta hoja 2 con la clave catastral.' } },
@@ -71,7 +74,7 @@ const CASES = [
     },
   },
   {
-    id: 'c6', name: 'Paseos de la Pradera', address: 'Paseos de la Pradera, Hidalgo', owner: 'Pradera Desarrollos S.A.', lat: 20.101, lng: -98.759,
+    id: 'c6', code: 'CASO-006', name: 'Paseos de la Pradera', address: 'Paseos de la Pradera, Hidalgo', owner: 'Pradera Desarrollos S.A.', lat: 20.101, lng: -98.759,
     docs: {
       escrituras: { st: 'aprobado', text: 'Relotificación inscrita correctamente.' },
       uso_suelo: { st: 'aprobado', text: 'Antecedente vigente.' },
@@ -81,14 +84,14 @@ const CASES = [
     },
   },
   {
-    id: 'c7', name: 'QUMA', address: 'Zona QUMA, Estado de México', owner: 'QUMA Inmobiliaria S.A.', lat: 19.65, lng: -99.21,
+    id: 'c7', code: 'CASO-007', name: 'QUMA', address: 'Zona QUMA, Estado de México', owner: 'QUMA Inmobiliaria S.A.', lat: 19.65, lng: -99.21,
     docs: {
       escrituras: { fails: { direccion: 'Calle Hidalgo 45 en escritura vs. Hidalgo 54 en predial.', numero_oficial: 'Escritura: 45, constancia: 54.' } },
       predial: { warns: { direccion: 'Dirección abreviada, confirmar.' } },
     },
   },
   {
-    id: 'c8', name: 'Villa del Carbón 3', address: 'Villa del Carbón, Estado de México', owner: 'Carbón Retail S.A.', lat: 19.733, lng: -99.471,
+    id: 'c8', code: 'CASO-008', name: 'Villa del Carbón 3', address: 'Villa del Carbón, Estado de México', owner: 'Carbón Retail S.A.', lat: 19.733, lng: -99.471,
     docs: {
       escrituras: { st: 'aprobado', text: 'Correcta.' },
       predial: { st: 'aprobado', text: 'Pago vigente.' },
@@ -114,6 +117,9 @@ function buildDoc(c, type, i) {
     caseId: c.id,
     type,
     file: `${FILES[type]} ${c.name}.pdf`,
+    pdf: NO_PDF.has(`${c.id}-${type}`) ? null : `/docs/${type}/caso-${c.id.slice(1).padStart(3, '0')}.pdf`,
+    // Vigencia del predial: fin del ejercicio fiscal indicado en el archivo (pendiente de OCR/backend)
+    vigencia: type === 'predial' ? `${PREDIAL_YEAR[c.id]}-12-31` : null,
     completitud: comp,
     checks,
     notes,
