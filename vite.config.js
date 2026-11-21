@@ -17,7 +17,7 @@ const csp = [
   "script-src 'self' https://accounts.google.com/gsi/client",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
   'font-src https://fonts.gstatic.com',
-  "img-src 'self' data: https://*.googleusercontent.com",
+  "img-src 'self' data: https://*.googleusercontent.com https://tile.openstreetmap.org",
   "frame-src 'self' https://accounts.google.com https://maps.google.com https://www.google.com",
   "connect-src 'self' https://accounts.google.com",
   "object-src 'self'",
