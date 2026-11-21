@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store.jsx';
 import logo from '../assets/images/logo-3b.png';
 import { hashPassword } from '../lib/secure.js';
-import { GOOGLE_CLIENT_ID, loadGoogle, newNonce, userFromCredential } from '../lib/auth.js';
+import { GOOGLE_CLIENT_ID, loadGoogle, newNonce } from '../lib/auth.js';
 
 function GoogleButton({ onError }) {
   const { dispatch } = useStore();
@@ -18,11 +18,21 @@ function GoogleButton({ onError }) {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           nonce,
-          callback: ({ credential }) => {
+          callback: async ({ credential }) => {
             try {
-              dispatch({ type: 'LOGIN_GOOGLE', user: userFromCredential(credential, nonce) });
-            } catch (e) {
-              onError(e.message);
+              const res = await fetch('/api/login/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential, nonce }),
+              });
+              const data = await res.json().catch(() => ({}));
+              if (!res.ok) {
+                onError(data.error || 'Tu cuenta de Google no tiene acceso a este sistema.');
+                return;
+              }
+              dispatch({ type: 'LOGIN_GOOGLE', user: data.user });
+            } catch {
+              onError('No hay conexión con el servidor.');
             }
           },
         });
