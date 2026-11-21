@@ -8,6 +8,10 @@ certs/
 # ---------- Secretos ----------
 .env
 .env*.local
+# Copias accidentales del .env (sin punto o descargadas desde el navegador)
+env
+env.download
+*.download
 
 # ---------- Python ----------
 .venv/
