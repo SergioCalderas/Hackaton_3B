@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { STATUS_LABEL, STATUS_TONE, mapsEmbed, mapsLink } from '../lib/selectors.js';
+import { STATUS_LABEL, STATUS_TONE, mapsLink } from '../lib/selectors.js';
+import StoresMap from './StoresMap.jsx';
 
 export const Pill = ({ status }) => <span className={`pill pill-${STATUS_TONE[status]}`}>{STATUS_LABEL[status]}</span>;
 
@@ -57,7 +58,7 @@ export const Card = ({ className = '', title, action, children }) => (
   </section>
 );
 
-export function MapCard({ item, title = 'Ubicación del caso' }) {
+export function MapCard({ item, title = 'Ubicación del caso y tiendas 3B cercanas' }) {
   if (!item) {
     return (
       <Card className="map-card" title={title}>
@@ -75,7 +76,7 @@ export function MapCard({ item, title = 'Ubicación del caso' }) {
         </a>
       }
     >
-      <iframe key={item.id} title={`Mapa ${item.name}`} src={mapsEmbed(item)} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+      <StoresMap item={item} />
       <p className="muted small">
         <strong>{item.name}</strong> · {item.address}
       </p>
