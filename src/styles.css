@@ -279,3 +279,22 @@ summary { cursor: pointer; font-weight: 600; }
 .navy-card .pill { background: #fff; color: #000; font-weight: 900; }
 
 .slogan { font-size: 26px !important; font-weight: 900 !important; font-style: italic; }
+
+/* Menú inferior (celular) */
+.bottom-menu { display: none; }
+@media (max-width: 960px) {
+  .page { padding-bottom: 90px; }
+  .tabs, .desk-only { display: none; }
+  .topbar { justify-content: space-between; }
+  .bottom-menu { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; }
+  .bm-backdrop { position: fixed; inset: 0; background: rgba(28, 36, 75, 0.45); z-index: -1; }
+  .bm-sheet { background: var(--navy); border-radius: 22px 22px 0 0; padding: 8px 14px calc(10px + env(safe-area-inset-bottom)); box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.25); }
+  .bm-list { list-style: none; margin: 0 0 8px; padding: 6px 0 0; display: flex; flex-direction: column; gap: 6px; }
+  .bm-list button { width: 100%; text-align: left; border: 0; border-radius: 14px; padding: 14px 16px; font-weight: 700; font-size: 16px; background: rgba(255, 255, 255, 0.1); color: #fff; }
+  .bm-list button.on { background: #fff; color: var(--navy); }
+  .bm-list button.out { background: var(--red); }
+  .bm-bar { width: 100%; display: flex; align-items: center; gap: 12px; border: 0; background: transparent; color: #fff; font-weight: 900; font-size: 16px; padding: 8px 4px; }
+  .bm-bar img { width: 34px; height: 34px; }
+  .bm-bar span { flex: 1; text-align: left; }
+  .bm-bar i { font-style: normal; font-size: 18px; }
+}
