@@ -30,6 +30,8 @@ class OCRResult:
     text: str
     confidence: float | None          # promedio 0..1 (None si no hay texto)
     lines: list[OCRLine] = field(default_factory=list)
+    engine: str | None = None         # motor que produjo el texto (útil en motores compuestos)
+    extra: dict = field(default_factory=dict)  # info adicional para los metadatos
 
 
 class OCREngine(ABC):

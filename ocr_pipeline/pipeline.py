@@ -14,6 +14,7 @@ from .engines import EngineUnavailableError, OCREngine, create_engine
 from .loaders import DocumentSource, sha256_file, useful_chars
 from .outputs import build_summary_csv, build_summary_xlsx, iter_result_jsons, output_paths, read_json, write_json, write_txt
 from .preprocess import preprocess
+from .quality import text_quality
 
 log = logging.getLogger("ocr_pipeline")
 
@@ -91,8 +92,8 @@ def compute_status(meta: dict, cfg: PipelineConfig) -> str:
     n = meta["num_pages"] or 1
     if meta["total_chars"] / n < cfg.low_text_chars_per_page:
         return "low_text"
-    conf = meta.get("avg_confidence")
-    if conf is not None and conf < cfg.low_conf_threshold:
+    quality = meta.get("text_quality")
+    if quality is not None and quality < cfg.low_quality_threshold:
         return "low_confidence"
     return "ok"
 
@@ -115,6 +116,7 @@ def process_document(path: Path, rel: Path, sha: str, cfg: PipelineConfig,
         "pages": [],
         "methods_count": {},
         "avg_confidence": None,
+        "text_quality": None,
         "total_chars": 0,
         "processing_time_s": None,
         "status": None,
@@ -155,10 +157,13 @@ def process_document(path: Path, rel: Path, sha: str, cfg: PipelineConfig,
                     engine = provider.get(cfg.engine)
                     res = engine.ocr(img)
                     text = res.text.strip()
-                    page["method"] = f"ocr:{engine.name}"
-                    page["engine"] = engine.name
+                    used = res.engine or engine.name
+                    page["method"] = f"ocr:{used}"
+                    page["engine"] = used
                     page["confidence"] = round(res.confidence, 4) if res.confidence is not None else None
                     page["ocr_lines"] = len(res.lines)
+                    if res.extra.get("fallback"):
+                        page["hybrid"] = {k: v for k, v in res.extra.items() if k != "quality"}
             except EngineUnavailableError:
                 raise  # falla de configuración: detiene el run completo
             except Exception as e:
@@ -166,6 +171,8 @@ def process_document(path: Path, rel: Path, sha: str, cfg: PipelineConfig,
                 meta["errors"].append(f"Página {i + 1}: {page['error']}")
                 log.warning("%s pág %d: %s", rel, i + 1, page["error"])
             page["chars"] = len(text)
+            q = text_quality(text) if text else None
+            page["text_quality"] = round(q, 4) if q is not None else None
             page["time_s"] = round(time.perf_counter() - t_page, 2)
             meta["pages"].append(page)
 
@@ -180,6 +187,10 @@ def process_document(path: Path, rel: Path, sha: str, cfg: PipelineConfig,
     if ocr_pages:
         tot = sum(p["chars"] for p in ocr_pages)
         meta["avg_confidence"] = round(sum(p["confidence"] * p["chars"] for p in ocr_pages) / tot, 4)
+    q_pages = [p for p in meta["pages"] if p.get("text_quality") is not None and p["chars"]]
+    if q_pages:
+        tot = sum(p["chars"] for p in q_pages)
+        meta["text_quality"] = round(sum(p["text_quality"] * p["chars"] for p in q_pages) / tot, 4)
     meta["processing_time_s"] = round(time.perf_counter() - t_doc, 2)
     meta["status"] = compute_status(meta, cfg)
 
@@ -249,8 +260,8 @@ def run(cfg: PipelineConfig) -> dict:
             else:
                 meta, text = process_document(path, rel, sha, cfg, provider)
                 stats[meta["status"]] += 1
-                log.info("%-14s %s | págs=%d %s conf=%s chars=%d %.1fs", meta["status"].upper(),
-                         rel.as_posix(), meta["num_pages"], meta["methods_count"],
+                log.info("%-14s %s | págs=%d %s calidad=%s conf=%s chars=%d %.1fs", meta["status"].upper(),
+                         rel.as_posix(), meta["num_pages"], meta["methods_count"], meta["text_quality"],
                          meta["avg_confidence"], meta["total_chars"], meta["processing_time_s"])
             write_txt(txt_path, text)
             write_json(json_path, meta)
@@ -275,5 +286,11 @@ def run(cfg: PipelineConfig) -> dict:
     except Exception as e:  # el Excel es un extra: no debe tumbar el run
         xlsx_path = f"no generado ({type(e).__name__}: {e})"
         log.exception("No se pudo generar el Excel")
+    try:
+        from .export import exportar_todo
+        resumen = exportar_todo(output_dir)
+        log.info("Exportado: %s", ", ".join(resumen["archivos"]))
+    except Exception:
+        log.exception("No se pudo generar documentos.json / expedientes.json")
     log.info("Resumen: %s | CSV: %s | Excel: %s", dict(stats), csv_path, xlsx_path)
     return dict(stats)

@@ -1,0 +1,298 @@
+{
+  "$defs": {
+    "Campo": {
+      "additionalProperties": false,
+      "description": "Un dato extraído del texto, con su evidencia para trazabilidad.",
+      "properties": {
+        "Valor": {
+          "description": "Valor tal como aparece en el texto (limpio)",
+          "title": "Valor",
+          "type": "string"
+        },
+        "Normalizado": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Valor normalizado para comparar (mayúsculas, sin acentos, solo dígitos, ISO, m2...)",
+          "title": "Normalizado"
+        },
+        "Pagina": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Página de donde se extrajo (1-based)",
+          "title": "Pagina"
+        },
+        "Evidencia": {
+          "description": "Fragmento de texto alrededor del valor",
+          "title": "Evidencia",
+          "type": "string"
+        },
+        "Regla": {
+          "description": "Regla de extracción que lo encontró",
+          "title": "Regla",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Valor",
+        "Normalizado",
+        "Pagina",
+        "Evidencia",
+        "Regla"
+      ],
+      "title": "Campo",
+      "type": "object"
+    },
+    "Pagina": {
+      "additionalProperties": false,
+      "properties": {
+        "Numero": {
+          "title": "Numero",
+          "type": "integer"
+        },
+        "Texto": {
+          "title": "Texto",
+          "type": "string"
+        },
+        "Metodo": {
+          "enum": [
+            "native",
+            "ocr",
+            "error"
+          ],
+          "title": "Metodo",
+          "type": "string"
+        },
+        "Motor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "tesseract | paddle | null (texto nativo del PDF)",
+          "title": "Motor"
+        },
+        "CalidadTexto": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Proporción 0..1 de tokens válidos en español",
+          "title": "Calidadtexto"
+        }
+      },
+      "required": [
+        "Numero",
+        "Texto",
+        "Metodo",
+        "Motor",
+        "CalidadTexto"
+      ],
+      "title": "Pagina",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "VersionEsquema": {
+      "default": "1.0.0",
+      "title": "Versionesquema",
+      "type": "string"
+    },
+    "NombreArchivo": {
+      "title": "Nombrearchivo",
+      "type": "string"
+    },
+    "RutaArchivo": {
+      "description": "Ruta relativa del archivo de origen (trazabilidad)",
+      "title": "Rutaarchivo",
+      "type": "string"
+    },
+    "TipoDocumento": {
+      "anyOf": [
+        {
+          "enum": [
+            "Predial",
+            "Alineamiento",
+            "Escritura",
+            "UsoDeSuelo"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "TipoDeclarado si existe; si no, TipoDetectado",
+      "title": "Tipodocumento"
+    },
+    "TipoDeclarado": {
+      "anyOf": [
+        {
+          "enum": [
+            "Predial",
+            "Alineamiento",
+            "Escritura",
+            "UsoDeSuelo"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Tipo indicado por el usuario o por la carpeta",
+      "title": "Tipodeclarado"
+    },
+    "TipoDetectado": {
+      "anyOf": [
+        {
+          "enum": [
+            "Predial",
+            "Alineamiento",
+            "Escritura",
+            "UsoDeSuelo"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Tipo inferido del contenido por palabras clave",
+      "title": "Tipodetectado"
+    },
+    "TextoExtraido": {
+      "description": "Texto completo; páginas unidas con doble salto de línea",
+      "title": "Textoextraido",
+      "type": "string"
+    },
+    "Paginas": {
+      "items": {
+        "$ref": "#/$defs/Pagina"
+      },
+      "title": "Paginas",
+      "type": "array"
+    },
+    "Estado": {
+      "enum": [
+        "ok",
+        "low_text",
+        "low_confidence",
+        "partial",
+        "error"
+      ],
+      "title": "Estado",
+      "type": "string"
+    },
+    "CalidadTexto": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Calidadtexto"
+    },
+    "NumPaginas": {
+      "title": "Numpaginas",
+      "type": "integer"
+    },
+    "Hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "SHA-256 truncado a 16 caracteres",
+      "title": "Hash"
+    },
+    "DuplicadoDe": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "RutaArchivo del documento idéntico ya procesado",
+      "title": "Duplicadode"
+    },
+    "CamposExtraidos": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Campo"
+      },
+      "title": "Camposextraidos",
+      "type": "object"
+    },
+    "Discrepancias": {
+      "description": "Problemas propios del documento (p. ej. tipo declarado != detectado)",
+      "items": {
+        "type": "string"
+      },
+      "title": "Discrepancias",
+      "type": "array"
+    },
+    "ExpedienteId": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expedienteid"
+    }
+  },
+  "required": [
+    "NombreArchivo",
+    "RutaArchivo",
+    "TipoDocumento",
+    "TipoDeclarado",
+    "TipoDetectado",
+    "TextoExtraido",
+    "Paginas",
+    "Estado",
+    "CalidadTexto",
+    "NumPaginas",
+    "Hash",
+    "DuplicadoDe"
+  ],
+  "title": "Documento",
+  "type": "object"
+}

@@ -19,6 +19,7 @@ import base64
 import csv
 import html
 import random
+import re
 import sys
 import time
 from collections import defaultdict
@@ -72,6 +73,20 @@ def thumbnail_b64(img, width=700) -> str:
     small = cv2.resize(img, (width, int(h * width / w)), interpolation=cv2.INTER_AREA)
     ok, buf = cv2.imencode(".jpg", small, [cv2.IMWRITE_JPEG_QUALITY, 70])
     return base64.b64encode(buf.tobytes()).decode() if ok else ""
+
+
+def word_metrics(text: str) -> tuple[float | None, float | None]:
+    """(% de tokens 'pegados' (>=15 letras seguidas), longitud media de palabra).
+
+    En español casi ninguna palabra real pasa de 14 letras; tokens más largos suelen
+    ser varias palabras sin espacio (p. ej. 'FORMATOUNIVERSALDEPAGO').
+    """
+    words = [w for w in (re.sub(r"[^\wáéíóúüñÁÉÍÓÚÜÑ]", "", t) for t in text.split())
+             if sum(c.isalpha() for c in w) >= 2]
+    if not words:
+        return None, None
+    glued = sum(1 for w in words if re.search(r"[^\W\d_]{15,}", w))
+    return round(100 * glued / len(words), 1), round(sum(map(len, words)) / len(words), 2)
 
 
 def fmt(v, nd=3):
@@ -145,15 +160,19 @@ def main(argv=None) -> int:
             wsum = sum(w for _, w in confs)
             avg_conf = sum(c * w for c, w in confs) / wsum if wsum else None
             chars = sum(len(t.split("\n", 1)[1]) if "\n" in t else 0 for t in page_texts)
+            body = "\n".join(t.split("\n", 1)[1] if "\n" in t else "" for t in page_texts)
+            glued_pct, mean_wlen = word_metrics(body)
             rows.append({
                 "carpeta": rel.parts[0], "archivo": rel.name, "paginas_evaluadas": n,
                 "paginas_totales": total_pages, "motor": engine_name,
                 "preproc": "si" if use_pre else "no", "combo": key,
                 "tiempo_s": round(t_total, 2), "s_por_pagina": round(t_total / n, 2) if n else None,
                 "confianza": round(avg_conf, 4) if avg_conf is not None else None,
-                "caracteres": chars, "palabras": len(full.split()),
+                "caracteres": chars, "palabras": len(body.split()),
+                "pegadas_pct": glued_pct, "long_media_palabra": mean_wlen,
             })
-            log.info("   %-15s %6.1fs  conf=%s  chars=%d", key, t_total, fmt(avg_conf), chars)
+            log.info("   %-15s %6.1fs  conf=%s  chars=%d  pegadas=%s%%", key, t_total,
+                     fmt(avg_conf), chars, glued_pct)
         html_docs.append((rel.as_posix(), n, total_pages, round(render_s, 2),
                           thumbnail_b64(images[0]) if images else "", texts))
 
@@ -168,7 +187,7 @@ def main(argv=None) -> int:
         w.writerows(rows)
 
     # --- resumen por combinación
-    agg = defaultdict(lambda: {"docs": 0, "paginas": 0, "tiempo": 0.0, "chars": 0, "conf": []})
+    agg = defaultdict(lambda: {"docs": 0, "paginas": 0, "tiempo": 0.0, "chars": 0, "conf": [], "pegadas": []})
     for r in rows:
         a = agg[r["combo"]]
         a["docs"] += 1
@@ -177,6 +196,8 @@ def main(argv=None) -> int:
         a["chars"] += r["caracteres"]
         if r["confianza"] is not None:
             a["conf"].append(r["confianza"])
+        if r["pegadas_pct"] is not None:
+            a["pegadas"].append(r["pegadas_pct"])
     summary = []
     for combo, a in agg.items():
         summary.append({
@@ -184,6 +205,7 @@ def main(argv=None) -> int:
             "s_por_pagina": round(a["tiempo"] / a["paginas"], 2) if a["paginas"] else None,
             "confianza_media": round(sum(a["conf"]) / len(a["conf"]), 4) if a["conf"] else None,
             "chars_por_pagina": round(a["chars"] / a["paginas"]) if a["paginas"] else 0,
+            "pegadas_pct_media": round(sum(a["pegadas"]) / len(a["pegadas"]), 1) if a["pegadas"] else None,
         })
     with open(out / "resumen_combos.csv", "w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=list(summary[0]))
@@ -192,15 +214,16 @@ def main(argv=None) -> int:
 
     # --- tabla en consola
     print("\nDetalle por documento:")
-    print(f"{'carpeta':<16} {'archivo':<38} {'combo':<15} {'s/pág':>6} {'conf':>6} {'chars':>7}")
+    print(f"{'carpeta':<16} {'archivo':<38} {'combo':<15} {'s/pág':>6} {'conf':>6} {'chars':>7} {'pegad%':>6}")
     for r in rows:
         print(f"{r['carpeta'][:16]:<16} {r['archivo'][:38]:<38} {r['combo']:<15} "
-              f"{fmt(r['s_por_pagina'], 1):>6} {fmt(r['confianza']):>6} {r['caracteres']:>7}")
+              f"{fmt(r['s_por_pagina'], 1):>6} {fmt(r['confianza']):>6} {r['caracteres']:>7} "
+              f"{fmt(r['pegadas_pct'], 1):>6}")
     print("\nResumen por combinación (nota: la confianza de Paddle y Tesseract no es directamente comparable):")
-    print(f"{'combo':<15} {'docs':>4} {'págs':>5} {'s/pág':>6} {'conf':>6} {'chars/pág':>9}")
+    print(f"{'combo':<15} {'docs':>4} {'págs':>5} {'s/pág':>6} {'conf':>6} {'chars/pág':>9} {'pegad%':>6}")
     for s in summary:
         print(f"{s['combo']:<15} {s['docs']:>4} {s['paginas']:>5} {fmt(s['s_por_pagina'], 1):>6} "
-              f"{fmt(s['confianza_media']):>6} {s['chars_por_pagina']:>9}")
+              f"{fmt(s['confianza_media']):>6} {s['chars_por_pagina']:>9} {fmt(s['pegadas_pct_media'], 1):>6}")
 
     write_html(out / "lado_a_lado.html", html_docs, rows)
     print(f"\nArchivos en: {out}")

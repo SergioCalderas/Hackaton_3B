@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 from .base import EngineUnavailableError, OCREngine, OCRLine, OCRResult
+from .hybrid_engine import HybridEngine
 from .paddle_engine import PaddleEngine
 from .tesseract_engine import TesseractEngine
 
 ENGINES: dict[str, type[OCREngine]] = {
+    HybridEngine.name: HybridEngine,
     PaddleEngine.name: PaddleEngine,
     TesseractEngine.name: TesseractEngine,
     # "easyocr": EasyOCREngine,

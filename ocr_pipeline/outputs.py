@@ -14,7 +14,7 @@ from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 SUMMARY_NAME = "resumen.csv"
 SUMMARY_COLUMNS = [
     "carpeta", "archivo", "tipo_archivo", "paginas", "motor", "metodos",
-    "confianza_promedio", "caracteres", "caracteres_por_pagina", "tiempo_s",
+    "calidad_texto", "confianza_promedio", "caracteres", "caracteres_por_pagina", "tiempo_s",
     "estado", "duplicado_de", "errores", "sha256", "txt",
 ]
 
@@ -72,7 +72,9 @@ def build_summary_csv(output_dir: Path) -> Path:
         pages = m.get("num_pages") or 0
         chars = m.get("total_chars") or 0
         conf = m.get("avg_confidence")
+        qual = m.get("text_quality")
         rows.append({
+            "calidad_texto": f"{qual:.3f}" if isinstance(qual, (int, float)) else "",
             "carpeta": m.get("doc_type", ""),
             "archivo": m.get("source_file", ""),
             "tipo_archivo": m.get("file_type", ""),
@@ -143,10 +145,10 @@ def build_summary_xlsx(output_dir: Path, preview_chars: int = 300) -> Path:
     ws_pages = wb.create_sheet("paginas")
 
     doc_cols = [("carpeta", 22), ("archivo", 45), ("paginas", 8), ("metodo_por_pagina", 30),
-                ("motor", 10), ("confianza_promedio", 12), ("caracteres", 11), ("estado", 15),
+                ("motor", 10), ("calidad_texto", 12), ("confianza_promedio", 12), ("caracteres", 11), ("estado", 15),
                 ("duplicado_de", 35), ("errores", 30), ("vista_previa", 80)]
     page_cols = [("carpeta", 22), ("archivo", 45), ("pagina", 7), ("metodo", 13),
-                 ("confianza", 10), ("caracteres", 11), ("error", 25), ("texto", 100)]
+                 ("calidad_texto", 12), ("confianza", 10), ("caracteres", 11), ("error", 25), ("texto", 100)]
 
     for ws, cols in ((ws_docs, doc_cols), (ws_pages, page_cols)):
         ws.append([c for c, _ in cols])
@@ -163,10 +165,12 @@ def build_summary_xlsx(output_dir: Path, preview_chars: int = 300) -> Path:
         page_texts = split_pages(txt)
         body = "\n".join(page_texts[k] for k in sorted(page_texts))
         conf = m.get("avg_confidence")
+        qual = m.get("text_quality")
         method_by_page = " | ".join(f"{p['page']}:{p.get('method') or 'error'}" for p in m.get("pages", []))
         ws_docs.append([
             m.get("doc_type", ""), m.get("source_file", ""), m.get("num_pages", 0), method_by_page,
-            m.get("engine", ""), round(conf, 3) if isinstance(conf, (int, float)) else None,
+            m.get("engine", ""), round(qual, 3) if isinstance(qual, (int, float)) else None,
+            round(conf, 3) if isinstance(conf, (int, float)) else None,
             m.get("total_chars", 0), m.get("status", ""), m.get("duplicate_of") or "",
             _clean_cell("; ".join(m.get("errors") or [])),
             _clean_cell(" ".join(body.split())[:preview_chars]),
@@ -174,7 +178,7 @@ def build_summary_xlsx(output_dir: Path, preview_chars: int = 300) -> Path:
         for p in m.get("pages", []):
             ws_pages.append([
                 m.get("doc_type", ""), m.get("source_file", ""), p["page"],
-                p.get("method") or "error", p.get("confidence"), p.get("chars", 0),
+                p.get("method") or "error", p.get("text_quality"), p.get("confidence"), p.get("chars", 0),
                 p.get("error") or "", _clean_cell(page_texts.get(p["page"], "")),
             ])
 

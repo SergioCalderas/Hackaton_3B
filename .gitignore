@@ -4,3 +4,4 @@ comparison/
 tessdata/
 __pycache__/
 *.pyc
+*.log

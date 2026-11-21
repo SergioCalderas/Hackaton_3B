@@ -1,7 +1,7 @@
 """Pipeline OCR local: extrae texto de PDFs escaneados e imágenes.
 
 Ejemplos:
-  python run_ocr.py                                  # todo, PaddleOCR, sin preprocesamiento
+  python run_ocr.py                                  # todo, motor híbrido (Tesseract + respaldo Paddle)
   python run_ocr.py --folder Predial --limit 3       # prueba rápida
   python run_ocr.py --limit-per-folder 2 --order size
   python run_ocr.py --engine tesseract --preprocess --output output_tess
@@ -23,7 +23,8 @@ def parse_args(argv=None):
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--input", type=Path, default=PROJECT_ROOT, help="Carpeta raíz con las subcarpetas de documentos")
     p.add_argument("--output", type=Path, default=PROJECT_ROOT / "output", help="Carpeta de salida")
-    p.add_argument("--engine", choices=sorted(ENGINES), default="paddle")
+    p.add_argument("--engine", choices=sorted(ENGINES), default="hybrid",
+                   help="hybrid = Tesseract + respaldo Paddle por página (default)")
     p.add_argument("--dpi", type=int, default=300)
     p.add_argument("--folder", default=None, help="Procesar solo esta subcarpeta (p. ej. Predial)")
     p.add_argument("--limit", type=int, default=None, help="Máximo de archivos en total")

@@ -54,7 +54,7 @@ class PreprocessConfig:
 class PipelineConfig:
     input_dir: Path = PROJECT_ROOT
     output_dir: Path = PROJECT_ROOT / "output"
-    engine: str = "paddle"
+    engine: str = "hybrid"
     dpi: int = 300
     preprocess: PreprocessConfig = field(default_factory=PreprocessConfig)
 
@@ -69,8 +69,10 @@ class PipelineConfig:
     order: str = "name"                 # "name" | "size" (size = más pequeños primero)
     force: bool = False
 
-    # Umbrales para el estado del documento
-    low_conf_threshold: float = 0.80
+    # Umbrales para el estado del documento.
+    # low_confidence se decide por calidad_texto (% de palabras válidas en español),
+    # no por la confianza del motor (la de Paddle está mal calibrada).
+    low_quality_threshold: float = 0.65
     low_text_chars_per_page: int = 80
 
     # Opciones de motores
