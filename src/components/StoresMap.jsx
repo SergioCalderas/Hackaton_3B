@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import logo from '../assets/images/logo-3b.png';
+import tienda from '../assets/images/tienda-3b.png';
 
 // Listado de tiendas 3B (public/data/tiendas-3b.json). Cuando exista backend, reemplazar por la consulta a la BD.
 let cache;
@@ -18,9 +18,9 @@ export function distKm(a, b) {
 const pinIcon = (cls, text, size) =>
   L.divIcon({ className: `pin ${cls}`, html: `<span>${text}</span>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
 
-// Tienda 3B: el logo de 3B como marcador, con el número de cercanía
+// Tienda 3B: la imagen de la tienda como marcador, con el número de cercanía
 const storeIcon = (n) =>
-  L.divIcon({ className: 'pin pin-logo', html: `<img src="${logo}" alt="" /><b>${n}</b>`, iconSize: [38, 38], iconAnchor: [19, 19] });
+  L.divIcon({ className: 'pin pin-logo', html: `<img src="${tienda}" alt="" /><b>${n}</b>`, iconSize: [60, 38], iconAnchor: [30, 19] });
 
 // Tooltip construido con textContent (los datos externos nunca se insertan como HTML)
 const tip = (title, sub) => {
@@ -86,12 +86,12 @@ export default function StoresMap({ item, count = 5 }) {
       <div ref={box} className="stores-map" />
       <div className="map-legend">
         <span><i className="pin-key pin-case" /> Caso en evaluación</span>
-        <span><img className="key-logo" src={logo} alt="" /> Tienda 3B</span>
+        <span><img className="key-logo" src={tienda} alt="" /> Tienda 3B</span>
       </div>
       <ol className="store-list">
         {near.map((s) => (
           <li key={s.id}>
-            <img className="li-logo" src={logo} alt="" />
+            <img className="li-logo" src={tienda} alt="" />
             <b>{s.nombre}</b>
             <span>{s.calle || s.ciudad}</span>
             <em>{s.d.toFixed(1)} km</em>
