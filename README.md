@@ -13,6 +13,11 @@ Front (sube los documentos de UN inmueble)
   → LLM con LangChain (veredicto)
 ```
 
+> **Veredicto con LLM:** el paquete `analisis/` implementa el último paso. Es un sistema multiagente
+> con LangChain y LangGraph, con `qwen3.5:9b` local o Claude Haiku online, que entrega el estado
+> Cumple / Requiere revisión / No cumple con evidencia por página en menos de 1 minuto. Ver
+> [README_ANALISIS.md](README_ANALISIS.md) y el visor `streamlit run app_streamlit.py`.
+
 ## Inicio rápido para el equipo
 
 **1. Instalar** (Windows, Python 3.11, solo CPU; los detalles van en [Instalación](#instalación-windows-cpu)):

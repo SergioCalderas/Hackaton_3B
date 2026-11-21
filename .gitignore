@@ -38,3 +38,7 @@ desktop.ini
 # Predial/, Uso_de_suelo/) viven en main y se dejan trackeadas a propósito (dataset compartido
 # del equipo). Para tus propios datos de prueba usa una carpeta local_data/ (ignorada):
 local_data/
+
+# Análisis con LLM
+.env
+static/

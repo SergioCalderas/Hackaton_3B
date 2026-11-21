@@ -1,0 +1,11 @@
+[server]
+# Sirve la carpeta static/ (copias de los PDFs analizados y miniaturas) para los enlaces a página.
+enableStaticServing = true
+maxUploadSize = 200
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#1f5fbf"
