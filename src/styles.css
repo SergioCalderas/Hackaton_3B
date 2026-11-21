@@ -276,3 +276,5 @@ summary { cursor: pointer; font-weight: 600; }
 
 /* Etiquetas legibles sobre fondo oscuro */
 .navy-card .pill { background: #fff; color: #000; font-weight: 900; }
+
+.slogan { font-size: 26px !important; font-weight: 900 !important; font-style: italic; }

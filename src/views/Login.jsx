@@ -61,7 +61,7 @@ export default function Login() {
       <div className="login-side">
         <img className="logo-big" src={logo} alt="3B" />
         <h1>Prefactibilidad de expansión</h1>
-        <p>Revisa la documentación de cada caso, valida su congruencia y decide la prefactibilidad.</p>
+        <p className="slogan">Bueno, bonito y barato.</p>
       </div>
       <form className="login-card card" onSubmit={submit}>
         <h2>Iniciar sesión</h2>
