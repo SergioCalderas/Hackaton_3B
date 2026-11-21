@@ -1,6 +1,6 @@
 # Hackaton 3B · Prefactibilidad (frontend)
 
-Frontend en React + Vite para evaluar la prefactibilidad de casos de expansión. Sin backend: los datos de demostración viven en `src/lib/seed.js` y el estado se guarda en `localStorage`.
+Sistema para evaluar la prefactibilidad de casos de expansión. Tiene tres piezas: el **frontend** (React + Vite, esta carpeta), el **backend** Flask (`server/app.py`, login y pipeline de documentos) y la **base de datos** Postgres en Supabase. Los casos y documentos del dashboard aún son datos de demostración (`src/lib/seed.js`), cuyo estado se guarda cifrado en el navegador; el inicio de sesión por correo ya consulta la tabla `usuarios`.
 
 ## Cómo abrir el frontend
 
@@ -16,7 +16,8 @@ Frontend en React + Vite para evaluar la prefactibilidad de casos de expansión.
    npm install
    npm run dev
    ```
-4. Abre la dirección que imprime la terminal (normalmente https://localhost:5173 — solo HTTPS) e inicia sesión con una cuenta de demostración.
+4. Arranca también el backend (el login por correo lo necesita; ver *Backend* más abajo).
+5. Abre la dirección que imprime la terminal (normalmente https://localhost:5173 — solo HTTPS) e inicia sesión con un usuario de la tabla `usuarios`.
 
 Para generar la versión de producción: `npm run build` (queda en `dist/`).
 
@@ -38,13 +39,9 @@ Una sola vez por equipo: instala [mkcert](https://github.com/FiloSottile/mkcert)
 - **En reposo:** los datos guardados en el navegador se cifran con AES-GCM (Web Crypto); la clave es no extraíble y vive en IndexedDB. Las contraseñas demo solo existen como hash. La base de datos ya guarda datos hasheados (fuera de este alcance).
 - **En uso:** la sesión no se persiste, se cierra tras 10 min de inactividad, no hay contraseñas en memoria del estado y el contenido se renderiza escapado (React) con CSP restrictiva.
 
-## Cuentas de demostración (contraseña `3b123`)
+## Usuarios
 
-| Rol | Correo |
-|---|---|
-| Gestor de expansión | gestor@3b.mx |
-| Gestor de expansión | gestor2@3b.mx |
-| Administrador | admin@3b.mx |
+El login por correo y contraseña lo valida el backend contra la tabla `usuarios` (contraseñas con bcrypt; `tipo_usuario` 1 = administrador, 2 = gestor). Pide las credenciales al equipo de base de datos. Las cuentas demo que antes vivían en `src/lib/seed.js` ya no se usan para entrar.
 
 ## Reglas implementadas
 
@@ -112,3 +109,48 @@ El backend (`server/app.py`) registra el pipeline de `procesamiento/`. Toma los 
 de datos (no del front) y responde si cada uno está `APROBADO`, en `REVISION_MANUAL` o hay que
 `VOLVER_A_SUBIR`, con el motivo. Endpoints, variables de entorno y diseño en [`CLAUDE.md`](CLAUDE.md);
 detalle del filtro en [`filtro_calidad/README.md`](filtro_calidad/README.md).
+
+## Backend
+
+```bash
+python -m venv .venv
+.venv\Scriptsctivate          # Windows  (Linux/Mac: source .venv/bin/activate)
+pip install -r server/requirements.txt
+python server/app.py              # escucha en http://127.0.0.1:5000
+```
+
+Necesita un `.env` en la raíz con `DATABASE_URL` (y las demás variables de la sección *Base de datos*). En desarrollo, Vite reenvía `/api` a ese puerto (`vite.config.js`), así que el navegador siempre habla con un único origen HTTPS.
+
+## Despliegue
+
+### Arquitectura recomendada
+
+```
+Navegador ──HTTPS──> Servidor web / proxy (443)
+                       ├─ /      -> archivos estáticos de dist/ (frontend)
+                       └─ /api   -> backend Flask (127.0.0.1:5000)  ──> Supabase (Postgres)
+```
+
+Frontend y API deben servirse **bajo el mismo dominio**: la política de seguridad (CSP) solo permite `connect-src 'self'` y no hace falta configurar CORS.
+
+### Pasos
+
+1. **Variables del frontend** (se incrustan al compilar, no son secretas): crea `.env.production` con `VITE_GOOGLE_CLIENT_ID` y `VITE_GOOGLE_ALLOWED` (ver `.env.example`).
+2. **Compilar el frontend:** `npm ci && npm run build`. El resultado queda en `dist/`; el build ya inyecta la CSP en `index.html` y copia `public/` (incluye `_headers`).
+3. **Publicar `dist/`** en un hosting estático con HTTPS (Netlify, Cloudflare Pages, Nginx, etc.). Netlify y Cloudflare Pages leen `_headers`; en otro servidor replica esas cabeceras, **incluido HSTS** (`Strict-Transport-Security`). Redirige todo http a https.
+4. **Backend:** instala las dependencias y corre Flask con un servidor de producción, no con `python server/app.py`: `gunicorn -w 2 -b 127.0.0.1:5000 server.app:app` en Linux o `waitress-serve --listen=127.0.0.1:5000 server.app:app` en Windows (instala el que uses). Colócalo detrás del proxy con HTTPS y enruta `/api` hacia él.
+5. **Secretos:** `DATABASE_URL`, `DB_PASSWORD`, llaves de Supabase, etc., solo como variables de entorno del servidor (o `.env` fuera de git). Nunca en el frontend.
+6. **Google Sign-In:** en Google Cloud Console agrega el dominio de producción (con `https://`) como *origen JS autorizado*. Google no acepta IPs. Verifica además el token en el backend.
+7. **Comprobar:** abre el dominio, confirma el candado HTTPS, el login y que `/api/login` responde.
+
+### Pendientes antes de producción
+
+- Los **PDFs de `public/docs/` se sirven públicos** (cualquiera con la URL los descarga sin sesión). En producción deben salir del backend, con autenticación, o de un almacenamiento privado con URLs firmadas.
+- Casos, documentos, aprobaciones e historial aún no se guardan en la base de datos: hoy viven en el navegador de cada persona y no se comparten.
+- La ubicación del mapa debe leerse de `operacion_realizada.latitud/longitud`.
+- Servir el backend con `debug` desactivado y limitar intentos de login.
+
+### Demostración rápida sin desplegar
+
+- **Misma red:** `npm run dev -- --host`, abrir el puerto 5173 en el firewall (PowerShell de administrador: `New-NetFirewallRule -DisplayName "Vite 3B" -Direction Inbound -Protocol TCP -LocalPort 5173 -Action Allow`) y entrar a `https://IP-DEL-PC:5173` (el navegador avisará del certificado).
+- **Enlace público temporal:** `cloudflared tunnel --url https://localhost:5173 --no-tls-verify` da una dirección `https://….trycloudflare.com` válida. Cualquiera con el enlace puede verla (incluidos los PDFs); ciérralo al terminar.
