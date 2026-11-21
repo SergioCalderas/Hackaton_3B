@@ -6,16 +6,19 @@ import Dashboard from './views/Dashboard.jsx';
 import Cases from './views/Cases.jsx';
 import CaseDetail from './views/CaseDetail.jsx';
 import { AdminHistory, AdminSummary } from './views/Admin.jsx';
+import Filtro from './views/Filtro.jsx';
 
 const IDLE_MS = 10 * 60 * 1000;
 
 const GESTOR_TABS = [
   { key: 'inicio', label: 'Dashboard' },
   { key: 'casos', label: 'Casos' },
+  { key: 'filtro', label: 'Filtro de documentos' },
 ];
 const ADMIN_TABS = [
   { key: 'resumen', label: 'Resumen' },
   { key: 'historial', label: 'Historial' },
+  { key: 'filtro', label: 'Filtro de documentos' },
 ];
 
 export default function App() {
@@ -60,11 +63,13 @@ export default function App() {
           <>
             {tab === 'resumen' && <AdminSummary />}
             {tab === 'historial' && <AdminHistory />}
+            {tab === 'filtro' && <Filtro />}
           </>
         ) : (
           <>
             {tab === 'inicio' && <Dashboard user={user} onOpenCase={openCase} onNav={nav} />}
             {tab === 'casos' && (caseId ? <CaseDetail caseId={caseId} onBack={() => setCaseId(null)} /> : <Cases onOpenCase={setCaseId} />)}
+            {tab === 'filtro' && <Filtro />}
           </>
         )}
       </main>

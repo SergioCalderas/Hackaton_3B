@@ -74,22 +74,37 @@ Ramas: `main` (integración), `Wendy` (pipeline/filtro), `SabrinaMichaus` (front
 ## 4. Base de datos (Supabase Postgres, proyecto "Hackaton")
 
 Detalle en `README.md`. Conexión en `.env` local (no se sube): `DATABASE_URL`, `SUPABASE_URL`, …
-Tablas `escrituras`, `predial`, `suelo`, `aliniamiento` (mismas columnas: `direccion_real`,
-`propietario`, `numero_oficial`, `superficie`, `estado` 0/1, `direccion_memoria` hash bcrypt).
+Tablas `escrituras`, `predial`, `suelo`, `aliniamiento` (mismas columnas: `direccion_memoria`,
+`direccion_real`, `propietario`, `numero_oficial`, `superficie`, `estado` 0/1, `archivo`).
 `operacion_realizada` junta un documento de cada tabla (+ lat/long y semáforo 1 rojo, 2 amarillo, 3 verde).
 
-**Los documentos NO se suben desde el front: el pipeline los toma de la BD.** Las tablas aún no
-tienen columna para el archivo. `procesamiento/fuentes.py` lee la columna `FILTRO_COLUMNA_ARCHIVO`
-(por omisión `archivo`) y acepta: `bytea`, URL http(s) (Supabase Storage) o ruta relativa al repo
-o a `public/` (p. ej. `docs/predial/caso-001.pdf`). Propuesta de esquema en `procesamiento/sql/propuesta.sql`.
+**Los documentos NO se suben desde el front: el pipeline los toma de la BD.** Esquema actual
+(el equipo lo reorganizó el 21-nov-2026):
+- Los archivos viven en **Supabase Storage**, bucket público `documentos`, con carpetas
+  `escrituras/`, `predial/`, `uso_de_suelo/`, `alineamiento/` (los 60 PDFs/JPG del reto).
+- **`direccion_memoria` guarda la ruta del objeto en el bucket** (p. ej. `predial/02 Predial.pdf`).
+  Los campos de datos (`direccion_real`, `propietario`, `numero_oficial`, `superficie`, `estado`)
+  aceptan NULL: los llenará la Fase 2.
+- `operacion_realizada` está vacía por ahora; mientras tanto el front arma el expediente a mano
+  (pestaña "Filtro de documentos" → `POST /api/dictamen`).
+
+`procesamiento/fuentes.py` toma el archivo de la primera columna no vacía de `FILTRO_COLUMNA_ARCHIVO`
+(por omisión `archivo,direccion_memoria`). Acepta `bytea`, URL http(s), ruta relativa al repo o a
+`public/`, o **ruta dentro del bucket** (descarga de `SUPABASE_URL/storage/v1/object/public/<bucket>/<ruta>`).
+Un hash bcrypt en la columna se trata como "sin archivo".
 
 Variables del servidor para el pipeline:
 
 | Variable | Uso |
 |---|---|
-| `DATABASE_URL` | conexión Postgres (ya la usa el login) |
-| `FILTRO_COLUMNA_ARCHIVO` | columna con el archivo (default `archivo`) |
-| `FILTRO_GUARDAR_RESULTADOS=1` | inserta cada resultado en `filtro_resultados` |
+| `DATABASE_URL` | conexión Postgres (ya la usa el login). En redes sin IPv6 usar el **Session pooler** (`aws-1-us-east-1.pooler.supabase.com`), no `db.<ref>.supabase.co` |
+| `SUPABASE_URL` | para descargar del bucket |
+| `FILTRO_COLUMNA_ARCHIVO` | columnas con el archivo, en orden (default `archivo,direccion_memoria`) |
+| `FILTRO_BUCKET` | bucket de Storage (default `documentos`) |
+| `FILTRO_GUARDAR_RESULTADOS=1` | inserta cada resultado en `filtro_resultados` (bitácora; la API usa el más reciente) |
+| `DICTAMEN_LLM=1` | activa el LLM en el dictamen (sin esto: plantilla determinista, costo cero) |
+| `DICTAMEN_MODELO` / `DICTAMEN_EFFORT` | default `claude-opus-5-5` / `low` |
+| `ANTHROPIC_API_KEY` | credencial del LLM (o perfil de `ant auth login`) |
 
 ## 5. API del pipeline (registrada en `server/app.py`)
 
@@ -98,7 +113,11 @@ Variables del servidor para el pipeline:
 | GET | `/api/procesamiento/salud` | etapas activas y versión de reglas |
 | GET | `/api/operaciones` | todas las operaciones con el último resultado guardado por documento (sin OCR, ~2 s) |
 | GET | `/api/operaciones/<id>` (y GET `…/verificar`) | una operación, último resultado guardado; GET nunca vuelve a correr el filtro |
+| GET | `/api/documentos` | todos los documentos con último resultado y **observaciones** (sin OCR) |
 | POST | `/api/documentos/<tabla>/<id>/verificar` | corre el pipeline sobre un documento de la BD |
+| GET | `/api/operaciones/<id>/observaciones` | observaciones estructuradas + semáforo determinista |
+| POST | `/api/operaciones/<id>/dictamen` | manda las observaciones a la última etapa (LLM o plantilla) |
+| POST | `/api/dictamen` | igual, con documentos elegidos `{escrituras, predial, suelo, aliniamiento}: id` |
 | POST | `/api/operaciones/<id>/verificar` | los 4 documentos de `operacion_realizada` + completitud RF-01 (`EN_REVISION` / `NO_VALIDADO`) |
 | POST | `/api/documentos/verificar-archivo` | multipart `archivo` (+ `tipo`), solo para pruebas |
 
@@ -109,20 +128,35 @@ Tablas válidas: `escrituras | predial | suelo | aliniamiento` (lista blanca, si
 
 ### Front ↔ pipeline
 
-`src/lib/filtro.jsx` (`FiltroProvider`, `useFiltro`) consulta `GET /api/operaciones` al iniciar y
-`POST /api/operaciones/<id>/verificar?hasta=calidad` con el botón **Verificar documentos**.
-- Caso del front `cN` ↔ `operacion_realizada.id = N` (los 8 casos se cargaron en ese orden).
+- **Pestaña "Filtro de documentos"** (`src/views/Filtro.jsx`, gestor y admin): lista los documentos de la
+  BD por tipo con su estado, mensaje y **observaciones** (severidad, código, regla), botón *Verificar* por
+  documento y *Usar en dictamen* para armar el expediente; **Generar dictamen** muestra semáforo,
+  justificación con ids citados, acciones sugeridas, quién la redactó (LLM o plantilla) y el JSON enviado al LLM.
+- `src/lib/filtro.jsx` (`FiltroProvider`, `useFiltro`): resultados por operación para `CaseDetail.jsx`
+  (tarjeta "Filtro de calidad", observaciones por documento) y `DocModal.jsx`. Caso `cN` ↔ operación `N`;
+  hoy no hay operaciones, la tarjeta remite a la pestaña nueva.
 - Tipos front → tablas: `escrituras→escrituras`, `predial→predial`, `uso_suelo→suelo`,
   `alineamiento→aliniamiento`, `numero_oficial→aliniamiento` (la BD los junta).
-- UI: tarjeta "Filtro de calidad · Fase 1" en `CaseDetail.jsx` (estado del expediente + por documento),
-  etiqueta por documento en la lista y bloque con mensaje/observaciones en `DocModal.jsx`.
 - El resto del front (revisión del gestor, semáforos de validación, historial) sigue usando
   `src/lib/seed.js` + localStorage.
 
-Datos cargados en la BD (21-nov-2026): 8 operaciones con sus 4 documentos; `archivo` apunta a
-`public/docs/<tipo>/caso-00N.pdf` (caso 5 sin uso de suelo). `numero_oficial='S/N'` y `superficie=0`
-son **provisionales** hasta que la Fase 2 los extraiga. Conexión: en redes sin IPv6 usar el
-**Session pooler** de Supabase (`aws-1-us-east-1.pooler.supabase.com`), no `db.<ref>.supabase.co`.
+### Observaciones y dictamen (última etapa)
+
+- `procesamiento/observaciones.py`: convierte resultados en observaciones uniformes
+  `{id, tabla, documento, etapa, codigo, regla, severidad, bloquea, texto}`. Severidad CRITICA/ALTA/MEDIA/BAJA;
+  códigos `FALTA-ARCHIVO`, `CAL-RECHAZO`, `CAL-COMBINADO`, `CAL-NO-COMPROBANTE`, `CAL-TIPO-DUDOSO`,
+  `RIESGO-VIGENCIA` (RG-01), `RIESGO-ADEUDO`/`RIESGO-PERIODO` (RG-04), `CAL-IMAGEN`, `CAL-LECTURA`…
+  Las fases futuras (VC-xx, RG-xx) deben agregar sus hallazgos con esta misma forma.
+- `procesamiento/dictamen.py`: **el código decide el semáforo** (GRIS faltan/rechazados, ROJO crítico,
+  AMARILLO media/alta, VERDE solo Fase 1) y **el LLM solo redacta** con salida JSON por esquema
+  (`resumen`, `puntos[{texto, observaciones_citadas}]`, `acciones_sugeridas`). Citas a ids inexistentes se
+  eliminan y el punto queda marcado `sin_evidencia`. Llamada: `client.beta.messages.create`,
+  `claude-opus-5-5`, `effort=low`, `fallbacks="default"` (beta `server-side-fallback-2026-07-01`).
+  Ante cualquier fallo (sin credencial, rechazo, límite, red) cae a la plantilla con una nota.
+- Probado sin gastar: la petición se interceptó con un transporte simulado (`httpx2.MockTransport`).
+  Falta probar contra la API real con una credencial.
+- Windows + Python de la Store: `pip install anthropic` falla por rutas >260 caracteres. Habilitar
+  rutas largas (`LongPathsEnabled`) o usar un venv en una ruta corta.
 
 ## 6. Fase 1 — Filtro de calidad (HECHO)
 

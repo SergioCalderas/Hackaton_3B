@@ -21,7 +21,10 @@ function FiltroCard({ caseId }) {
   return (
     <Card title="Filtro de calidad · Fase 1">
       {!f.op ? (
-        <p className="muted small">{f.error ? `No se pudo consultar el filtro: ${f.error}` : `Sin operación en la base de datos para este caso.`}</p>
+        <p className="muted small">
+          {f.error ? `No se pudo consultar el filtro: ${f.error}` : 'Este caso aún no tiene operación en la base de datos.'}
+          {' '}Revisa los documentos, sus observaciones y el dictamen en la pestaña <strong>Filtro de documentos</strong>.
+        </p>
       ) : (
         <>
           <p className={`notice notice-${tone}`} style={{ marginTop: 0 }}>
@@ -37,6 +40,7 @@ function FiltroCard({ caseId }) {
                     <strong>{label}</strong>
                     {d && d.filtro && d.estado !== 'APROBADO' && <span className="muted tiny">{d.filtro.mensaje}</span>}
                     {d && !d.tiene_archivo && <span className="muted tiny">La operación no tiene archivo para este documento.</span>}
+                    {d && d.filtro && (d.filtro.observaciones || []).map((o) => <span key={o} className="tiny obs-linea">• {o}</span>)}
                   </div>
                   {d && <FiltroPill estado={d.estado} />}
                 </li>

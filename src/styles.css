@@ -306,3 +306,15 @@ summary { cursor: pointer; font-weight: 600; }
 .filtro-doc .tiny { color: var(--ink-2); }
 .filtro-obs { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
 .doc-main strong .pill { margin-left: 8px; vertical-align: middle; }
+.obs-linea { color: var(--ink-2); }
+.filtro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; align-items: start; }
+.filtro-docs { display: grid; gap: 12px; max-height: 70vh; overflow-y: auto; padding-right: 4px; }
+.filtro-doc-item { border: 1px solid var(--gray-soft); border-radius: 14px; padding: 12px; }
+.filtro-doc-item.elegido { border-color: var(--green); background: var(--green-soft); }
+.obs-lista { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+.obs { display: flex; gap: 8px; align-items: flex-start; }
+.obs-sev { flex: none; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; background: var(--gray-soft); color: #6b6465; }
+.obs-CRITICA .obs-sev, .obs-ALTA .obs-sev { background: var(--red-soft); color: var(--red-dark); }
+.obs-MEDIA .obs-sev { background: var(--amber-soft); color: #8a6200; }
+.dict-puntos { margin: 6px 0; padding-left: 20px; display: grid; gap: 4px; }
+.json-box { max-height: 320px; overflow: auto; background: var(--gray-soft); border-radius: 12px; padding: 12px; font-size: 12px; }
