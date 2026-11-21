@@ -57,6 +57,20 @@ Salida:
 
 Los archivos originales no se mueven ni se modifican.
 
+## App local para pruebas
+
+```bash
+python filtro_calidad/app.py          # http://127.0.0.1:8000
+python filtro_calidad/app.py --red    # también accesible desde otras PCs de la misma red
+```
+
+Arrastra uno o varios archivos, elige el tipo declarado (o "Detectar automáticamente") y pulsa
+**Verificar**. Para cada archivo muestra estado, mensaje para el usuario, observaciones,
+miniatura y el detalle por página (caracteres leídos, confianza OCR, nitidez, dpi). Arriba se ve
+la completitud del expediente (cuántos de los 4 tipos ya están aprobados).
+Los archivos subidos quedan en `filtro_calidad/_subidas/` (ignorado por git). El historial se
+borra al reiniciar la app o con **Limpiar**.
+
 ## Límites
 
 - No prueba autenticidad: un documento alterado pero legible pasa. Eso requiere QR/folio y consulta a la autoridad.
