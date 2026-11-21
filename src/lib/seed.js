@@ -21,6 +21,9 @@ export const USERS = [
   { id: 'u3', name: 'Paola Ríos', email: 'admin@3b.mx', hash: '806e9e693613dc63e3abfa6290cd7e9ec4db15fb6e6c6443cda4dd5c74a34faf', role: 'admin' },
 ];
 
+// Días desde que se recibió cada caso (provisional: la BD entregará la fecha real de recepción)
+export const RECEIVED_DAYS_AGO = { c1: 45, c2: 1, c3: 2, c4: 6, c5: 2, c6: 12, c7: 20, c8: 0 };
+
 const NO_PDF = new Set(['c5-uso_suelo']);
 const PREDIAL_YEAR = { c1: 2025, c2: 2025, c3: 2025, c4: 2024, c5: 2025, c6: 2025, c7: 2024, c8: 2025 };
 
