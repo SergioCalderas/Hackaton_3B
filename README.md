@@ -13,6 +13,67 @@ Front (sube los documentos de UN inmueble)
   → LLM con LangChain (veredicto)
 ```
 
+## Inicio rápido para el equipo
+
+**1. Instalar** (Windows, Python 3.11, solo CPU; los detalles van en [Instalación](#instalación-windows-cpu)):
+
+```powershell
+py -3.11 -m venv .venv
+.venv\Scripts\pip install -r requirements.txt
+winget install UB-Mannheim.TesseractOCR
+mkdir tessdata
+curl.exe -L -o tessdata\spa.traineddata https://github.com/tesseract-ocr/tessdata_best/raw/main/spa.traineddata
+copy "C:\Program Files\Tesseract-OCR\tessdata\eng.traineddata" tessdata\
+copy "C:\Program Files\Tesseract-OCR\tessdata\osd.traineddata" tessdata\
+.venv\Scripts\python -m pytest            # unas 40 pruebas en ~1 s, sin OCR
+```
+
+**2. Levantar la API y probarla desde el navegador:**
+
+```powershell
+.venv\Scripts\uvicorn api:app --port 8000
+```
+
+Abre **http://localhost:8000/docs**: Swagger UI permite subir archivos sin escribir código.
+
+- **`POST /documento`:** "Try it out", elige un PDF o imagen en `archivo`, opcionalmente pon
+  `tipo_declarado` (`Predial`, `Alineamiento`, `Escritura` o `UsoDeSuelo`) y presiona
+  "Execute". Para probar, usa por ejemplo `Predial/02 Predial.pdf`.
+- **`POST /expediente`:** agrega varios `archivos` y, si quieres, un `tipos` por archivo en el
+  mismo orden. Por ejemplo `Escritura/01 Escritura.pdf`, `Predial/02 Predial.pdf`,
+  `Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficial.pdf` y
+  `Uso_de_suelo/04 Licencia de Uso de Suelo.pdf`, que forman un expediente sintético completo.
+  Para ver un expediente con discrepancias plantadas, usa la variante `v` de los mismos cuatro.
+- **Parámetro `modo`** en ambos endpoints: `completo` (default, con texto) o `compacto` (sin
+  texto, ideal para el LLM). La primera petición tarda unos segundos más porque se carga el motor.
+
+**3. Estructura del JSON** (contrato Pydantic en `ocr_pipeline/schemas.py`, JSON Schema en
+`schemas/`, ejemplos reales sintéticos en `examples/`):
+
+```
+Expediente
+├── VersionEsquema, Modo, ExpedienteId
+├── PuntajeMatch (0–1), NivelMatch (alto|medio|bajo|sin_datos)
+├── CamposConsolidados   {Campo: {Valor, Normalizado, Fuentes[{Documento, TipoDocumento, Valor, Pagina}]}}
+├── CamposCoinciden      [Campo, …]
+├── CamposNoCoinciden    [{Campo, Detalle, Similitud, Valores[{Documento, TipoDocumento, Valor, Pagina}]}]
+├── TiposPresentes / DocumentosFaltantes   (Predial | Alineamiento | Escritura | UsoDeSuelo)
+├── Alertas              [texto]
+├── Comparaciones        [{DocumentoA, DocumentoB, Puntaje, Coinciden, NoCoinciden}]
+└── Documentos[]         Documento
+    ├── NombreArchivo, RutaArchivo, TipoDocumento, TipoDeclarado, TipoDetectado
+    ├── Estado (ok|low_text|low_confidence|partial|error), CalidadTexto, NumPaginas, Hash, DuplicadoDe
+    ├── CamposExtraidos  {Campo: {Valor, Normalizado, Pagina, Evidencia, Regla}}
+    ├── Discrepancias    [texto]
+    ├── TextoExtraido    (null en modo compacto)
+    └── Paginas[]        {Numero, Texto (null en compacto), Metodo, Motor, CalidadTexto}
+```
+
+**Para el equipo del LLM:** la señal principal está en `CamposNoCoinciden` (qué dato difiere y
+qué dice cada documento), `DocumentosFaltantes`, `Alertas` y el `Estado` y las `Discrepancias`
+de cada documento. Cada valor trae `Evidencia` y `Pagina` para citarlo. Ver
+[Modo compacto o completo](#modo-compacto-o-completo-para-el-equipo-del-llm).
+
 ## Instalación (Windows, CPU)
 
 ```powershell
@@ -82,6 +143,7 @@ Los archivos idénticos (mismo SHA-256) no repiten OCR y se marcan con `Duplicad
 | `resumen.csv` / `resumen.xlsx` | Una fila por documento con su estado en colores. La hoja `paginas` trae el texto por página |
 | **`documentos.json`** | Lista de objetos `Documento` (ver más abajo) |
 | **`expedientes.json`** | Lista de objetos `Expediente`. **Es la entrada del LLM** |
+| `documentos_compacto.json` / `expedientes_compacto.json` | Lo mismo en modo compacto, sin texto. En el set del reto pesan 0.2 MB y 0.3 MB, contra 1.4 MB y 0.75 MB en modo completo |
 | `expedientes.xlsx` | Hojas `expedientes`, `campos` (con evidencia), `sin_match` y `revisar`. Las dos últimas traen la columna `PistaNombreArchivo`, que es solo visual: el nombre del archivo **no** entra al puntaje |
 | `pipeline.log` | Log de la corrida |
 
@@ -98,13 +160,14 @@ Los archivos idénticos (mismo SHA-256) no repiten OCR y se marcan con `Duplicad
 from ocr_pipeline import procesar_documento, verificar_expediente
 
 doc = procesar_documento("boleta.pdf", tipo_declarado="Predial")   # dict con formato Documento
+doc = procesar_documento("boleta.pdf", "Predial", modo="compacto") # sin texto completo
 
 exp = verificar_expediente([                                       # dict con formato Expediente
     ("escritura.pdf", "Escritura"),
     ("boleta.pdf", "Predial"),
     ("alineamiento.pdf", "Alineamiento"),
     ("licencia.pdf", "UsoDeSuelo"),       # también acepta "uso de suelo", "uso_de_suelo"…
-])
+], modo="compacto")                       # "completo" (default) incluye el texto
 exp["CamposNoCoinciden"], exp["DocumentosFaltantes"], exp["PuntajeMatch"], exp["Alertas"]
 ```
 
@@ -125,18 +188,45 @@ uvicorn api:app --host 127.0.0.1 --port 8000      # documentación en http://127
 ```bash
 curl -F "archivo=@boleta.pdf" -F "tipo_declarado=Predial" http://127.0.0.1:8000/documento
 curl -F "archivos=@escritura.pdf" -F "tipos=Escritura" \
-     -F "archivos=@boleta.pdf"    -F "tipos=Predial"   http://127.0.0.1:8000/expediente
+     -F "archivos=@boleta.pdf"    -F "tipos=Predial"   "http://127.0.0.1:8000/expediente?modo=compacto"
 curl http://127.0.0.1:8000/salud
 ```
 
 `POST /documento` devuelve un `Documento` y `POST /expediente` devuelve un `Expediente`. Los
 archivos se guardan en una carpeta temporal que se borra al terminar. Nada sale a la nube.
 
-## Contrato JSON (`VersionEsquema` 1.0.0)
+## Contrato JSON (`VersionEsquema` 1.1.0)
 
 Los modelos Pydantic están en `ocr_pipeline/schemas.py` y su JSON Schema en
 `schemas/*.schema.json`. Para regenerarlos: `python -m ocr_pipeline.schemas`. Toda salida se
-valida contra estos modelos antes de escribirse o devolverse.
+valida contra estos modelos antes de escribirse o devolverse. En `examples/` hay ejemplos
+reales, generados solo con el expediente **sintético** `v` y textos recortados:
+`documentos.json`, `expedientes.json` y `expedientes_compacto.json`. Para regenerarlos:
+`python examples/generar_ejemplos.py`.
+
+Cambios de versión: **1.1.0** agrega `Modo`. En modo compacto, `TextoExtraido` y `Pagina.Texto`
+son `null`.
+
+### Modo compacto o completo (para el equipo del LLM)
+
+| | `modo="completo"` (default) | `modo="compacto"` |
+|---|---|---|
+| `CamposExtraidos` (Valor, Normalizado, **Pagina**, **Evidencia**, Regla) | sí | sí |
+| `Discrepancias`, `Estado`, `CalidadTexto`, tipos | sí | sí |
+| `CamposCoinciden` / `CamposNoCoinciden` / `Alertas` / `DocumentosFaltantes` | sí | sí, idénticos |
+| `TextoExtraido` | texto completo | `null` |
+| `Paginas` | todas, con `Texto` | solo las páginas donde se encontró algún campo, con `Texto: null` (método, motor y calidad sí) |
+
+- **Cuándo usar compacto:** por defecto para el veredicto. Una escritura de 30 a 50 páginas
+  puede sumar decenas de miles de tokens, y en compacto cada documento queda en pocos KB. La
+  `Evidencia` de cada campo (unos 120 caracteres alrededor del valor) basta para citar.
+- **Cuándo usar completo:** cuando el LLM tenga que buscar algo que el extractor no cubre (por
+  ejemplo gravámenes o cláusulas especiales) o justificar con texto literal más largo.
+- **Cómo pedir cada uno:**
+  - Batch: `export_json.py` genera los dos (`*_compacto.json`).
+  - Python: `verificar_expediente(..., modo="compacto")`.
+  - HTTP: `POST /expediente?modo=compacto`.
+- **La verificación es la misma:** el modo solo cambia qué se envía, no el resultado.
 
 ### Documento
 
@@ -157,7 +247,8 @@ Ejemplo real, recortado (`Predial/02 Predial.pdf`):
 
 ```json
 {
-  "VersionEsquema": "1.0.0",
+  "VersionEsquema": "1.1.0",
+  "Modo": "completo",
   "NombreArchivo": "02 Predial.pdf",
   "RutaArchivo": "Predial/02 Predial.pdf",
   "TipoDocumento": "Predial", "TipoDeclarado": "Predial", "TipoDetectado": "Predial",
@@ -196,7 +287,8 @@ Ejemplo real, recortado (expediente con discrepancias, `EXP-0980122309000000`):
 
 ```json
 {
-  "VersionEsquema": "1.0.0",
+  "VersionEsquema": "1.1.0",
+  "Modo": "completo",
   "ExpedienteId": "EXP-0980122309000000",
   "CamposConsolidados": {"ClaveCatastral": {"Valor": "098 01 223 09 00 0000", "Normalizado": "0980122309000000", "Fuentes": ["…"]}},
   "PuntajeMatch": 0.8669, "NivelMatch": "alto",
@@ -235,7 +327,19 @@ ocr_pipeline/
   servicio.py       API de Python: procesar_documento / verificar_expediente
 run_ocr.py  export_json.py  compare_engines.py  api.py
 schemas/            JSON Schema de Campo, Pagina, Documento y Expediente
+examples/           ejemplos del JSON (solo documentos sintéticos) + generar_ejemplos.py
+tests/              pytest: normalización, campos, matching, contrato/modos, API (OCR simulado) e integración
 ```
+
+## Pruebas
+
+```powershell
+.venv\Scripts\python -m pytest            # unitarias: rápidas, sin OCR ni Tesseract
+.venv\Scripts\python -m pytest -m slow    # integración: OCR real sobre PDFs sintéticos del reto
+```
+
+Las pruebas usan solo textos sintéticos. La de integración se salta sola si no hay Tesseract
+o si faltan los PDFs.
 
 **Para agregar un motor OCR** (por ejemplo EasyOCR): crea una subclase de `OCREngine` en
 `engines/` y regístrala en `ENGINES`.

@@ -198,8 +198,18 @@
       "additionalProperties": false,
       "properties": {
         "VersionEsquema": {
-          "default": "1.0.0",
+          "default": "1.1.0",
           "title": "Versionesquema",
+          "type": "string"
+        },
+        "Modo": {
+          "default": "completo",
+          "description": "completo: con texto; compacto: solo campos y evidencia",
+          "enum": [
+            "completo",
+            "compacto"
+          ],
+          "title": "Modo",
           "type": "string"
         },
         "NombreArchivo": {
@@ -266,11 +276,19 @@
           "title": "Tipodetectado"
         },
         "TextoExtraido": {
-          "description": "Texto completo; páginas unidas con doble salto de línea",
-          "title": "Textoextraido",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Texto completo; páginas unidas con doble salto de línea (null en modo compacto)",
+          "title": "Textoextraido"
         },
         "Paginas": {
+          "description": "Todas las páginas (completo) o solo aquellas donde se encontró algún campo (compacto)",
           "items": {
             "$ref": "#/$defs/Pagina"
           },
@@ -380,8 +398,16 @@
           "type": "integer"
         },
         "Texto": {
-          "title": "Texto",
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Texto de la página (null en modo compacto)",
+          "title": "Texto"
         },
         "Metodo": {
           "enum": [
@@ -502,8 +528,18 @@
   "additionalProperties": false,
   "properties": {
     "VersionEsquema": {
-      "default": "1.0.0",
+      "default": "1.1.0",
       "title": "Versionesquema",
+      "type": "string"
+    },
+    "Modo": {
+      "default": "completo",
+      "description": "Modo de los Documentos incluidos",
+      "enum": [
+        "completo",
+        "compacto"
+      ],
+      "title": "Modo",
       "type": "string"
     },
     "ExpedienteId": {

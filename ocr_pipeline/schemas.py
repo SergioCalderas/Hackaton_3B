@@ -10,10 +10,13 @@ from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
-VERSION_ESQUEMA = "1.0.0"
+VERSION_ESQUEMA = "1.1.0"
+# 1.1.0: campo Modo ("completo" | "compacto"); en compacto TextoExtraido y Pagina.Texto son null
+#        y Paginas solo incluye las páginas donde se encontró algún campo.
 
 TipoDoc = Literal["Predial", "Alineamiento", "Escritura", "UsoDeSuelo"]
 EstadoDoc = Literal["ok", "low_text", "low_confidence", "partial", "error"]
+ModoSalida = Literal["completo", "compacto"]
 
 
 class _Base(BaseModel):
@@ -32,7 +35,7 @@ class Campo(_Base):
 
 class Pagina(_Base):
     Numero: int
-    Texto: str
+    Texto: Optional[str] = Field(description="Texto de la página (null en modo compacto)")
     Metodo: Literal["native", "ocr", "error"]
     Motor: Optional[str] = Field(description="tesseract | paddle | null (texto nativo del PDF)")
     CalidadTexto: Optional[float] = Field(description="Proporción 0..1 de tokens válidos en español")
@@ -40,13 +43,16 @@ class Pagina(_Base):
 
 class Documento(_Base):
     VersionEsquema: str = VERSION_ESQUEMA
+    Modo: ModoSalida = Field("completo", description="completo: con texto; compacto: solo campos y evidencia")
     NombreArchivo: str
     RutaArchivo: str = Field(description="Ruta relativa del archivo de origen (trazabilidad)")
     TipoDocumento: Optional[TipoDoc] = Field(description="TipoDeclarado si existe; si no, TipoDetectado")
     TipoDeclarado: Optional[TipoDoc] = Field(description="Tipo indicado por el usuario o por la carpeta")
     TipoDetectado: Optional[TipoDoc] = Field(description="Tipo inferido del contenido por palabras clave")
-    TextoExtraido: str = Field(description="Texto completo; páginas unidas con doble salto de línea")
-    Paginas: list[Pagina]
+    TextoExtraido: Optional[str] = Field(
+        description="Texto completo; páginas unidas con doble salto de línea (null en modo compacto)")
+    Paginas: list[Pagina] = Field(
+        description="Todas las páginas (completo) o solo aquellas donde se encontró algún campo (compacto)")
     Estado: EstadoDoc
     CalidadTexto: Optional[float]
     NumPaginas: int
@@ -89,6 +95,7 @@ class ComparacionPar(_Base):
 
 class Expediente(_Base):
     VersionEsquema: str = VERSION_ESQUEMA
+    Modo: ModoSalida = Field("completo", description="Modo de los Documentos incluidos")
     ExpedienteId: str
     CamposConsolidados: dict[str, CampoConsolidado]
     PuntajeMatch: Optional[float] = Field(description="Promedio 0..1 del puntaje entre pares de documentos")

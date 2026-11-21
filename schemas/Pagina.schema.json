@@ -6,8 +6,16 @@
       "type": "integer"
     },
     "Texto": {
-      "title": "Texto",
-      "type": "string"
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Texto de la página (null en modo compacto)",
+      "title": "Texto"
     },
     "Metodo": {
       "enum": [

@@ -3,8 +3,8 @@
     uvicorn api:app --host 127.0.0.1 --port 8000
     # Documentación interactiva: http://127.0.0.1:8000/docs
 
-POST /documento   multipart: archivo=<file>, tipo_declarado=<Predial|Alineamiento|Escritura|UsoDeSuelo> (opcional)
-POST /expediente  multipart: archivos=<file> (varios), tipos=<tipo> (opcional, uno por archivo y en el mismo orden)
+POST /documento[?modo=compacto]   multipart: archivo=<file>, tipo_declarado=<Predial|Alineamiento|Escritura|UsoDeSuelo> (opcional)
+POST /expediente[?modo=compacto]  multipart: archivos=<file> (varios), tipos=<tipo> (opcional, uno por archivo, mismo orden)
 GET  /salud
 """
 from __future__ import annotations
@@ -14,9 +14,9 @@ import shutil
 import tempfile
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
 
 from ocr_pipeline.config import SUPPORTED_EXTENSIONS
 from ocr_pipeline.schemas import VERSION_ESQUEMA, Documento, Expediente
@@ -50,18 +50,24 @@ def salud():
 
 
 # Endpoints síncronos a propósito: FastAPI los corre en un threadpool y el OCR (CPU) no bloquea el loop.
-@app.post("/documento", response_model=Documento)
-def post_documento(archivo: UploadFile = File(...), tipo_declarado: Optional[str] = Form(None)):
+Modo = Literal["completo", "compacto"]
+MODO_DOC = "completo: incluye el texto. compacto: solo campos, evidencia, discrepancias y páginas con campos."
+
+
+@app.post("/documento", response_model=Documento, response_model_exclude_none=False)
+def post_documento(archivo: UploadFile = File(...), tipo_declarado: Optional[str] = Form(None),
+                   modo: Modo = Query("completo", description=MODO_DOC)):
     with tempfile.TemporaryDirectory(prefix="ocr_") as tmp:
         ruta, nombre = _guardar(archivo, Path(tmp))
         try:
-            return procesar_documento(ruta, tipo_declarado, nombre_original=nombre)
+            return procesar_documento(ruta, tipo_declarado, nombre_original=nombre, modo=modo)
         except Exception as e:
             raise HTTPException(422, f"No se pudo procesar {nombre}: {type(e).__name__}: {e}")
 
 
 @app.post("/expediente", response_model=Expediente)
-def post_expediente(archivos: list[UploadFile] = File(...), tipos: list[str] = Form(default=[])):
+def post_expediente(archivos: list[UploadFile] = File(...), tipos: list[str] = Form(default=[]),
+                    modo: Modo = Query("completo", description=MODO_DOC)):
     if tipos and len(tipos) != len(archivos):
         raise HTTPException(400, "Si envías 'tipos', debe haber uno por archivo y en el mismo orden")
     with tempfile.TemporaryDirectory(prefix="ocr_") as tmp:
@@ -73,4 +79,4 @@ def post_expediente(archivos: list[UploadFile] = File(...), tipos: list[str] = F
                 docs.append(procesar_documento(ruta, tipo, nombre_original=nombre))
             except Exception as e:
                 raise HTTPException(422, f"No se pudo procesar {nombre}: {type(e).__name__}: {e}")
-        return verificar_expediente(docs)
+        return verificar_expediente(docs, modo=modo)

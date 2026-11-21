@@ -10,7 +10,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from .matching import MatchConfig, agrupar, canonical_tipo, enriquecer_documento
+from .matching import MODOS, MatchConfig, agrupar, aplicar_modo, canonical_tipo, enriquecer_documento
 from .outputs import STATUS_FILLS, _atomic_write, _clean_cell, iter_result_jsons, split_pages
 from .schemas import VERSION_ESQUEMA, Documento, Expediente
 
@@ -46,6 +46,7 @@ def build_document(meta: dict, txt: str, tipo_declarado: str | None = None) -> d
     declarado = canonical_tipo(tipo_declarado) if tipo_declarado else tipo_documento(meta.get("doc_type", ""))
     return {
         "VersionEsquema": VERSION_ESQUEMA,
+        "Modo": "completo",
         "NombreArchivo": Path(source).name,
         "RutaArchivo": source,
         "TipoDocumento": declarado,
@@ -95,10 +96,23 @@ def export_documents_json(output_dir: Path, docs: list[dict] | None = None) -> t
     return path, len(docs)
 
 
-def exportar_todo(output_dir: Path, cfg: MatchConfig | None = None) -> dict:
-    """documentos.json + expedientes.json + expedientes.xlsx."""
+def _nombre_modo(nombre: str, modo: str) -> str:
+    """documentos.json (completo) / documentos_compacto.json (compacto)."""
+    return nombre if modo == "completo" else nombre.replace(".json", f"_{modo}.json")
+
+
+def exportar_todo(output_dir: Path, cfg: MatchConfig | None = None,
+                  modos: tuple[str, ...] = ("completo", "compacto")) -> dict:
+    """documentos[_compacto].json + expedientes[_compacto].json + expedientes.xlsx.
+
+    modos: "completo" escribe documentos.json / expedientes.json (con texto);
+           "compacto" escribe documentos_compacto.json / expedientes_compacto.json (sin texto).
+    """
     output_dir = Path(output_dir)
     cfg = cfg or MatchConfig()
+    for m in modos:
+        if m not in MODOS:
+            raise ValueError(f"modo debe ser uno de {MODOS}, no {m!r}")
     docs = load_documents(output_dir)
     res = agrupar(docs, cfg)
 
@@ -106,18 +120,25 @@ def exportar_todo(output_dir: Path, cfg: MatchConfig | None = None) -> dict:
     for d in docs:
         d["ExpedienteId"] = exp_de.get(d["RutaArchivo"])
     expedientes = [{"VersionEsquema": VERSION_ESQUEMA, **e} for e in res["expedientes"]]
-    validar(docs, expedientes)
 
-    write_json_file(output_dir / DOCUMENTS_JSON, docs)
-    write_json_file(output_dir / EXPEDIENTES_JSON, expedientes)
+    archivos = []
+    for modo in modos:
+        docs_m = [aplicar_modo(d, modo, es_expediente=False) for d in docs]
+        exps_m = [aplicar_modo(e, modo, es_expediente=True) for e in expedientes]
+        validar(docs_m, exps_m)
+        for nombre, data in ((DOCUMENTS_JSON, docs_m), (EXPEDIENTES_JSON, exps_m)):
+            path = output_dir / _nombre_modo(nombre, modo)
+            write_json_file(path, data)
+            archivos.append(str(path))
     xlsx = build_expedientes_xlsx(output_dir, expedientes, res["revisar"], res["sin_match"], docs)
+    archivos.append(str(xlsx))
     resumen = {
         "documentos": len(docs),
         "expedientes": len(expedientes),
         "completos": sum(1 for e in expedientes if not e["DocumentosFaltantes"]),
         "revisar": len(res["revisar"]),
         "sin_match": len(res["sin_match"]),
-        "archivos": [str(output_dir / DOCUMENTS_JSON), str(output_dir / EXPEDIENTES_JSON), str(xlsx)],
+        "archivos": archivos,
     }
     log.info("Matching: %s", {k: v for k, v in resumen.items() if k != "archivos"})
     return resumen

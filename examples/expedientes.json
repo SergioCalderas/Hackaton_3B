@@ -1,0 +1,1102 @@
+[
+  {
+    "VersionEsquema": "1.1.0",
+    "ExpedienteId": "EXP-0980122309000000",
+    "CamposConsolidados": {
+      "Calle": {
+        "Valor": "CALLE LAURELES",
+        "Normalizado": "CALLE LAURELES",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "CALLE LAURELES",
+            "Normalizado": "CALLE LAURELES",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "CALLE LAURELES",
+            "Normalizado": "CALLE LAURELES",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "LAURELES",
+            "Normalizado": "LAURELES",
+            "Pagina": 1
+          }
+        ]
+      },
+      "ClaveCatastral": {
+        "Valor": "098 01 223 09 00 0000",
+        "Normalizado": "0980122309000000",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "098 01 223 19 00 0000",
+            "Normalizado": "0980122319000000",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+            "TipoDocumento": "UsoDeSuelo",
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1
+          }
+        ]
+      },
+      "Colonia": {
+        "Valor": "VILLA DE LOS FRESNOS",
+        "Normalizado": "VILLA DE LOS FRESNOS",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "VILLA DE LOS FRESNOS",
+            "Normalizado": "VILLA DE LOS FRESNOS",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "VILLA DE LOS FRESNOS",
+            "Normalizado": "VILLA DE LOS FRESNOS",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "VILLA DE LOS FRESNOS",
+            "Normalizado": "VILLA DE LOS FRESNOS",
+            "Pagina": 1
+          }
+        ]
+      },
+      "EjercicioFiscal": {
+        "Valor": "2025",
+        "Normalizado": [
+          "2025"
+        ],
+        "Fuentes": [
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "2025",
+            "Normalizado": [
+              "2025"
+            ],
+            "Pagina": 1
+          }
+        ]
+      },
+      "Estado": {
+        "Valor": "MEXICO",
+        "Normalizado": "MEXICO",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "MEXICO",
+            "Normalizado": "MEXICO",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "MEXICO",
+            "Normalizado": "MEXICO",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "MÉXICO",
+            "Normalizado": "MEXICO",
+            "Pagina": 1
+          }
+        ]
+      },
+      "FechaDocumento": {
+        "Valor": "14 de mayo de 2025",
+        "Normalizado": "2025-05-14",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "14 de mayo de 2025",
+            "Normalizado": "2025-05-14",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "05 de noviembre de 2020",
+            "Normalizado": "2020-11-05",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "12/01/2025",
+            "Normalizado": "2025-01-12",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+            "TipoDocumento": "UsoDeSuelo",
+            "Valor": "02 DE JUNIO DE 2025",
+            "Normalizado": "2025-06-02",
+            "Pagina": 1
+          }
+        ]
+      },
+      "Folio": {
+        "Valor": "DDUM/CA/0912/2025",
+        "Normalizado": "DDUM/CA/0912/2025",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "DDUM/CA/0912/2025",
+            "Normalizado": "DDUM/CA/0912/2025",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "TM-2025-680332",
+            "Normalizado": "TM2025680332",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+            "TipoDocumento": "UsoDeSuelo",
+            "Valor": "DDUM/LUS/0377/2025",
+            "Normalizado": "DDUM/LUS/0377/2025",
+            "Pagina": 1
+          }
+        ]
+      },
+      "Lote": {
+        "Valor": "9",
+        "Normalizado": "9",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "9",
+            "Normalizado": "9",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "9",
+            "Normalizado": "9",
+            "Pagina": 1
+          }
+        ]
+      },
+      "Manzana": {
+        "Valor": "4",
+        "Normalizado": "4",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "4",
+            "Normalizado": "4",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "4",
+            "Normalizado": "4",
+            "Pagina": 1
+          }
+        ]
+      },
+      "Municipio": {
+        "Valor": "HUEHUETLAN DEL MONTE",
+        "Normalizado": "HUEHUETLAN DEL MONTE",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "HUEHUETLAN DEL MONTE",
+            "Normalizado": "HUEHUETLAN DEL MONTE",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "HUEHUETLAN DEL MONTE",
+            "Normalizado": "HUEHUETLAN DEL MONTE",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "HUEHUETLÁN DEL MONTE",
+            "Normalizado": "HUEHUETLAN DEL MONTE",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+            "TipoDocumento": "UsoDeSuelo",
+            "Valor": "HUEHUETLÁN DEL MONTE",
+            "Normalizado": "HUEHUETLAN DEL MONTE",
+            "Pagina": 1
+          }
+        ]
+      },
+      "NumeroEscritura": {
+        "Valor": "47,015",
+        "Normalizado": "47015",
+        "Fuentes": [
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "47,015",
+            "Normalizado": "47015",
+            "Pagina": 1
+          }
+        ]
+      },
+      "NumeroOficial": {
+        "Valor": "15",
+        "Normalizado": "15",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "15",
+            "Normalizado": "15",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "15",
+            "Normalizado": "15",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "51",
+            "Normalizado": "51",
+            "Pagina": 1
+          }
+        ]
+      },
+      "Propietario": {
+        "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+        "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 2
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "BENITEZ ARROYO JORGE ARMANDO",
+            "Normalizado": "BENITEZ ARROYO JORGE ARMANDO",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+            "TipoDocumento": "UsoDeSuelo",
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 1
+          }
+        ]
+      },
+      "SuperficieConstruccion": {
+        "Valor": "0.00",
+        "Normalizado": 0.0,
+        "Fuentes": [
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "0.00",
+            "Normalizado": 0.0,
+            "Pagina": 1
+          }
+        ]
+      },
+      "SuperficieTerreno": {
+        "Valor": "312.50",
+        "Normalizado": 312.5,
+        "Fuentes": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "312.50",
+            "Normalizado": 312.5,
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "312.50",
+            "Normalizado": 312.5,
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "290.00",
+            "Normalizado": 290.0,
+            "Pagina": 1
+          }
+        ]
+      },
+      "Vendedor": {
+        "Valor": "DESARROLLOS HABITACIONALES FRESNOS",
+        "Normalizado": "DESARROLLOS HABITACIONALES FRESNOS",
+        "Fuentes": [
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "DESARROLLOS HABITACIONALES FRESNOS",
+            "Normalizado": "DESARROLLOS HABITACIONALES FRESNOS",
+            "Pagina": 1
+          }
+        ]
+      },
+      "Volumen": {
+        "Valor": "1,204",
+        "Normalizado": "1204",
+        "Fuentes": [
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "1,204",
+            "Normalizado": "1204",
+            "Pagina": 1
+          }
+        ]
+      }
+    },
+    "PuntajeMatch": 0.8669,
+    "NivelMatch": "alto",
+    "CamposCoinciden": [
+      "Calle",
+      "Colonia",
+      "Municipio",
+      "Estado",
+      "Lote",
+      "Manzana"
+    ],
+    "CamposNoCoinciden": [
+      {
+        "Campo": "ClaveCatastral",
+        "Detalle": "difieren levemente (posible error de OCR o alteración)",
+        "Similitud": 0.85,
+        "Valores": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "098 01 223 19 00 0000",
+            "Normalizado": "0980122319000000",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+            "TipoDocumento": "UsoDeSuelo",
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1
+          }
+        ]
+      },
+      {
+        "Campo": "Propietario",
+        "Detalle": "valores distintos entre documentos",
+        "Similitud": 0.593,
+        "Valores": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 2
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "BENITEZ ARROYO JORGE ARMANDO",
+            "Normalizado": "BENITEZ ARROYO JORGE ARMANDO",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+            "TipoDocumento": "UsoDeSuelo",
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 1
+          }
+        ]
+      },
+      {
+        "Campo": "NumeroOficial",
+        "Detalle": "valores distintos entre documentos",
+        "Similitud": 0.0,
+        "Valores": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "15",
+            "Normalizado": "15",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "15",
+            "Normalizado": "15",
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "51",
+            "Normalizado": "51",
+            "Pagina": 1
+          }
+        ]
+      },
+      {
+        "Campo": "SuperficieTerreno",
+        "Detalle": "valores distintos entre documentos",
+        "Similitud": 0.5,
+        "Valores": [
+          {
+            "Documento": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+            "TipoDocumento": "Alineamiento",
+            "Valor": "312.50",
+            "Normalizado": 312.5,
+            "Pagina": 1
+          },
+          {
+            "Documento": "Escritura/01 Escriturav.pdf",
+            "TipoDocumento": "Escritura",
+            "Valor": "312.50",
+            "Normalizado": 312.5,
+            "Pagina": 1
+          },
+          {
+            "Documento": "Predial/02 Predialv.pdf",
+            "TipoDocumento": "Predial",
+            "Valor": "290.00",
+            "Normalizado": 290.0,
+            "Pagina": 1
+          }
+        ]
+      }
+    ],
+    "TiposPresentes": [
+      "Predial",
+      "Alineamiento",
+      "Escritura",
+      "UsoDeSuelo"
+    ],
+    "DocumentosFaltantes": [],
+    "Alertas": [],
+    "Comparaciones": [
+      {
+        "DocumentoA": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+        "DocumentoB": "Escritura/01 Escriturav.pdf",
+        "Puntaje": 1.0,
+        "Coinciden": [
+          "ClaveCatastral",
+          "Propietario",
+          "Calle",
+          "NumeroOficial",
+          "Colonia",
+          "Municipio",
+          "Estado",
+          "Lote",
+          "Manzana",
+          "SuperficieTerreno"
+        ],
+        "NoCoinciden": []
+      },
+      {
+        "DocumentoA": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+        "DocumentoB": "Predial/02 Predialv.pdf",
+        "Puntaje": 0.7185,
+        "Coinciden": [
+          "Calle",
+          "Colonia",
+          "Municipio",
+          "Estado"
+        ],
+        "NoCoinciden": [
+          "ClaveCatastral",
+          "Propietario",
+          "NumeroOficial",
+          "SuperficieTerreno"
+        ]
+      },
+      {
+        "DocumentoA": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+        "DocumentoB": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+        "Puntaje": 1.0,
+        "Coinciden": [
+          "ClaveCatastral",
+          "Propietario",
+          "Municipio"
+        ],
+        "NoCoinciden": []
+      },
+      {
+        "DocumentoA": "Escritura/01 Escriturav.pdf",
+        "DocumentoB": "Predial/02 Predialv.pdf",
+        "Puntaje": 0.7185,
+        "Coinciden": [
+          "Calle",
+          "Colonia",
+          "Municipio",
+          "Estado"
+        ],
+        "NoCoinciden": [
+          "ClaveCatastral",
+          "Propietario",
+          "NumeroOficial",
+          "SuperficieTerreno"
+        ]
+      },
+      {
+        "DocumentoA": "Escritura/01 Escriturav.pdf",
+        "DocumentoB": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+        "Puntaje": 1.0,
+        "Coinciden": [
+          "ClaveCatastral",
+          "Propietario",
+          "Municipio"
+        ],
+        "NoCoinciden": []
+      },
+      {
+        "DocumentoA": "Predial/02 Predialv.pdf",
+        "DocumentoB": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+        "Puntaje": 0.7642,
+        "Coinciden": [
+          "Municipio"
+        ],
+        "NoCoinciden": [
+          "ClaveCatastral",
+          "Propietario"
+        ]
+      }
+    ],
+    "Documentos": [
+      {
+        "VersionEsquema": "1.1.0",
+        "Modo": "completo",
+        "NombreArchivo": "03 Alineamiento y Numero Oficialv.pdf",
+        "RutaArchivo": "Alineamiento_y_Numero_Oficial/03 Alineamiento y Numero Oficialv.pdf",
+        "TipoDocumento": "Alineamiento",
+        "TipoDeclarado": "Alineamiento",
+        "TipoDetectado": "Alineamiento",
+        "TextoExtraido": "H. AYUNTAMIENTO CONSTITUCIONAL DE HUEHUETLÁN DEL MONTE\nEstado de México - Administración 2025-2027\n\nDIRECCIÓN DE DESARROLLO URBANO Y OBRAS PÚBLICAS\n\nCONSTANCIA DE ALINEAMIENTO\n\nFOLIO: DDUM/CA/0912/2025\n\nHuehuetlán del Monte, Estado de México, a 14 de mayo de 2025.\n\nC. JUAN CARLOS BENÍTEZ ARROYO: Est …[recortado]",
+        "Paginas": [
+          {
+            "Numero": 1,
+            "Texto": "H. AYUNTAMIENTO CONSTITUCIONAL DE HUEHUETLÁN DEL MONTE\nEstado de México - Administración 2025-2027\n\nDIRECCIÓN DE DESARROLLO URBANO Y OBRAS PÚBLICAS\n\nCONSTANCIA DE ALINEAMIENTO\n\nFOLIO: DDUM/CA/0912/202 …[recortado]",
+            "Metodo": "ocr",
+            "Motor": "tesseract",
+            "CalidadTexto": 0.84
+          },
+          {
+            "Numero": 2,
+            "Texto": "E HUE,,\n\n,\n\nS o\ná %\nE/ escuvo lo\nz MUNICIPAL\n” S\n\nv\n\nY 3\n\nH. AYUNTAMIENTO CONSTITUCIONAL DE HUEHUETLÁN DEL MONTE\nEstado de México - Administración 2025-2027\n\nDIRECCIÓN DE DESARROLLO URBANO Y OBRAS PÚB …[recortado]",
+            "Metodo": "ocr",
+            "Motor": "tesseract",
+            "CalidadTexto": 0.904
+          }
+        ],
+        "Estado": "ok",
+        "CalidadTexto": 0.868,
+        "NumPaginas": 2,
+        "Hash": "0594ba1809f9d7e7",
+        "DuplicadoDe": null,
+        "CamposExtraidos": {
+          "ClaveCatastral": {
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1,
+            "Evidencia": "de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NORTE: Lote 8 PREDIO SUP. 312.50 m* 12.50",
+            "Regla": "clave catastral"
+          },
+          "Propietario": {
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 2,
+            "Evidencia": "o con la clave catastral 098 01 223 09 00 0000, a nombre de JUAN CARLOS BENÍTEZ ARROYO, le corresponde el NÚMERO OFICIAL: 15 Se extiende la pres",
+            "Regla": "a nombre de"
+          },
+          "Direccion": {
+            "Valor": "Calle Laureles No. 15, Lote 9, Manzana 4,\nCol. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México",
+            "Normalizado": "CALLE LAURELES NUMERO 15 LOTE 9 MANZANA 4 COLONIA VILLA DE LOS FRESNOS MUNICIPIO DE HUEHUETLAN DEL MONTE ESTADO DE MEXICO",
+            "Pagina": 1,
+            "Evidencia": "ento que se indica en el siguiente croquis con ubicación en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NOR",
+            "Regla": "ubicacion en"
+          },
+          "NumeroOficial": {
+            "Valor": "15",
+            "Normalizado": "15",
+            "Pagina": 1,
+            "Evidencia": "ento que se indica en el siguiente croquis con ubicación en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NOR",
+            "Regla": "componente de dirección (ubicacion en)"
+          },
+          "Lote": {
+            "Valor": "9",
+            "Normalizado": "9",
+            "Pagina": 1,
+            "Evidencia": "ento que se indica en el siguiente croquis con ubicación en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NOR",
+            "Regla": "componente de dirección (ubicacion en)"
+          },
+          "Manzana": {
+            "Valor": "4",
+            "Normalizado": "4",
+            "Pagina": 1,
+            "Evidencia": "ento que se indica en el siguiente croquis con ubicación en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NOR",
+            "Regla": "componente de dirección (ubicacion en)"
+          },
+          "Colonia": {
+            "Valor": "VILLA DE LOS FRESNOS",
+            "Normalizado": "VILLA DE LOS FRESNOS",
+            "Pagina": 1,
+            "Evidencia": "ento que se indica en el siguiente croquis con ubicación en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NOR",
+            "Regla": "componente de dirección (ubicacion en)"
+          },
+          "Municipio": {
+            "Valor": "HUEHUETLAN DEL MONTE",
+            "Normalizado": "HUEHUETLAN DEL MONTE",
+            "Pagina": 1,
+            "Evidencia": "ento que se indica en el siguiente croquis con ubicación en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NOR",
+            "Regla": "componente de dirección (ubicacion en)"
+          },
+          "Estado": {
+            "Valor": "MEXICO",
+            "Normalizado": "MEXICO",
+            "Pagina": 1,
+            "Evidencia": "ento que se indica en el siguiente croquis con ubicación en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NOR",
+            "Regla": "componente de dirección (ubicacion en)"
+          },
+          "Calle": {
+            "Valor": "CALLE LAURELES",
+            "Normalizado": "CALLE LAURELES",
+            "Pagina": 1,
+            "Evidencia": "ento que se indica en el siguiente croquis con ubicación en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México. CLAVE CATASTRAL: 098 01 223 09 00 0000. NT 25.00 m - NOR",
+            "Regla": "componente de dirección (ubicacion en)"
+          },
+          "SuperficieTerreno": {
+            "Valor": "312.50",
+            "Normalizado": 312.5,
+            "Pagina": 1,
+            "Evidencia": "223 09 00 0000. NT 25.00 m - NORTE: Lote 8 PREDIO SUP. 312.50 m* 12.50 m - PONIENTE: Lote 22 12.50m 1 1 UU 1 1 I 1 1 1",
+            "Regla": "sup."
+          },
+          "Folio": {
+            "Valor": "DDUM/CA/0912/2025",
+            "Normalizado": "DDUM/CA/0912/2025",
+            "Pagina": 1,
+            "Evidencia": "URBANO Y OBRAS PÚBLICAS CONSTANCIA DE ALINEAMIENTO FOLIO: DDUM/CA/0912/2025 Huehuetlán del Monte, Estado de México, a 14 de mayo de 20",
+            "Regla": "folio/oficio"
+          },
+          "FechaDocumento": {
+            "Valor": "14 de mayo de 2025",
+            "Normalizado": "2025-05-14",
+            "Pagina": 1,
+            "Evidencia": "DUM/CA/0912/2025 Huehuetlán del Monte, Estado de México, a 14 de mayo de 2025. C. JUAN CARLOS BENÍTEZ ARROYO: Esta Dirección, en contest",
+            "Regla": "lugar y fecha"
+          }
+        },
+        "Discrepancias": [],
+        "ExpedienteId": "EXP-0980122309000000"
+      },
+      {
+        "VersionEsquema": "1.1.0",
+        "Modo": "completo",
+        "NombreArchivo": "01 Escriturav.pdf",
+        "RutaArchivo": "Escritura/01 Escriturav.pdf",
+        "TipoDocumento": "Escritura",
+        "TipoDeclarado": "Escritura",
+        "TipoDetectado": "Escritura",
+        "TextoExtraido": "NOTARIA\n\nPUBLICA\n\nLIC. ERNESTO GALINDO PEREYRA\nNOTARIO PÚBLICO No. 131 - TEXCOCO\n\nHoja 1\n\nVOLUMEN 1,204 ---------- INSTRUMENTO NÚMERO 47,015 ---------\n\nEn la ciudad de Texcoco, a 05 de noviembre de 2020, ANTE MÍ, LIC. ERNESTO\nGALINDO PEREYRA, Titular de la Notaría Pública número 131 de Estado de Méx …[recortado]",
+        "Paginas": [
+          {
+            "Numero": 1,
+            "Texto": "NOTARIA\n\nPUBLICA\n\nLIC. ERNESTO GALINDO PEREYRA\nNOTARIO PÚBLICO No. 131 - TEXCOCO\n\nHoja 1\n\nVOLUMEN 1,204 ---------- INSTRUMENTO NÚMERO 47,015 ---------\n\nEn la ciudad de Texcoco, a 05 de noviembre de 20 …[recortado]",
+            "Metodo": "ocr",
+            "Motor": "tesseract",
+            "CalidadTexto": 0.912
+          },
+          {
+            "Numero": 2,
+            "Texto": "LIC. ERNESTO GALINDO PEREYRA\nNOTARIO PÚBLICO No. 131 - TEXCOCO\n\nNOTARIA\n\nPUBLICA\n\nHoja 2\n\nLa parte compradora declara ser de nacionalidad mexicana, mayor de edad, con\ndomicilio en el Municipio de Hueh …[recortado]",
+            "Metodo": "ocr",
+            "Motor": "tesseract",
+            "CalidadTexto": 0.869
+          }
+        ],
+        "Estado": "ok",
+        "CalidadTexto": 0.902,
+        "NumPaginas": 2,
+        "Hash": "de5cd54b86db9ba5",
+        "DuplicadoDe": null,
+        "CamposExtraidos": {
+          "ClaveCatastral": {
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1,
+            "Evidencia": "e 312.50 metros cuadrados, identificado con clave catastral 098 01 223 09 00 0000, según consta en el folio real electrónico inscrito en el",
+            "Regla": "clave catastral"
+          },
+          "Propietario": {
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 1,
+            "Evidencia": "NALES FRESNOS, S.A. DE C.V., y de la otra como COMPRADOR(A) JUAN CARLOS BENÍTEZ ARROYO, al tenor de los siguientes antecedentes y cláusulas: ----",
+            "Regla": "comprador"
+          },
+          "Vendedor": {
+            "Valor": "DESARROLLOS HABITACIONALES FRESNOS",
+            "Normalizado": "DESARROLLOS HABITACIONALES FRESNOS",
+            "Pagina": 1,
+            "Evidencia": "ATO DE COMPRAVENTA que celebran, de una parte como VENDEDOR DESARROLLOS HABITACIONALES FRESNOS, S.A. DE C.V., y de la otra como COMPRADOR(A) JUAN CARLOS B",
+            "Regla": "vendedor"
+          },
+          "Direccion": {
+            "Valor": "Calle\nLaureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán\ndel Monte, Estado de México",
+            "Normalizado": "CALLE LAURELES NUMERO 15 LOTE 9 MANZANA 4 COLONIA VILLA DE LOS FRESNOS MUNICIPIO DE HUEHUETLAN DEL MONTE ESTADO DE MEXICO",
+            "Pagina": 1,
+            "Evidencia": "vendedora ser legítima propietaria del inmueble ubicado en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado co",
+            "Regla": "inmueble ubicado en"
+          },
+          "NumeroOficial": {
+            "Valor": "15",
+            "Normalizado": "15",
+            "Pagina": 1,
+            "Evidencia": "vendedora ser legítima propietaria del inmueble ubicado en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado co",
+            "Regla": "componente de dirección (inmueble ubicado en)"
+          },
+          "Lote": {
+            "Valor": "9",
+            "Normalizado": "9",
+            "Pagina": 1,
+            "Evidencia": "vendedora ser legítima propietaria del inmueble ubicado en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado co",
+            "Regla": "componente de dirección (inmueble ubicado en)"
+          },
+          "Manzana": {
+            "Valor": "4",
+            "Normalizado": "4",
+            "Pagina": 1,
+            "Evidencia": "vendedora ser legítima propietaria del inmueble ubicado en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado co",
+            "Regla": "componente de dirección (inmueble ubicado en)"
+          },
+          "Colonia": {
+            "Valor": "VILLA DE LOS FRESNOS",
+            "Normalizado": "VILLA DE LOS FRESNOS",
+            "Pagina": 1,
+            "Evidencia": "vendedora ser legítima propietaria del inmueble ubicado en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado co",
+            "Regla": "componente de dirección (inmueble ubicado en)"
+          },
+          "Municipio": {
+            "Valor": "HUEHUETLAN DEL MONTE",
+            "Normalizado": "HUEHUETLAN DEL MONTE",
+            "Pagina": 1,
+            "Evidencia": "vendedora ser legítima propietaria del inmueble ubicado en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado co",
+            "Regla": "componente de dirección (inmueble ubicado en)"
+          },
+          "Estado": {
+            "Valor": "MEXICO",
+            "Normalizado": "MEXICO",
+            "Pagina": 1,
+            "Evidencia": "vendedora ser legítima propietaria del inmueble ubicado en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado co",
+            "Regla": "componente de dirección (inmueble ubicado en)"
+          },
+          "Calle": {
+            "Valor": "CALLE LAURELES",
+            "Normalizado": "CALLE LAURELES",
+            "Pagina": 1,
+            "Evidencia": "vendedora ser legítima propietaria del inmueble ubicado en Calle Laureles No. 15, Lote 9, Manzana 4, Col. Villa de los Fresnos, Municipio de Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado co",
+            "Regla": "componente de dirección (inmueble ubicado en)"
+          },
+          "SuperficieTerreno": {
+            "Valor": "312.50",
+            "Normalizado": 312.5,
+            "Pagina": 1,
+            "Evidencia": "e Huehuetlán del Monte, Estado de México, con superficie de 312.50 metros cuadrados, identificado con clave catastral 098 01 2",
+            "Regla": "con superficie de"
+          },
+          "NumeroEscritura": {
+            "Valor": "47,015",
+            "Normalizado": "47015",
+            "Pagina": 1,
+            "Evidencia": "EXCOCO Hoja 1 VOLUMEN 1,204 ---------- INSTRUMENTO NÚMERO 47,015 --------- En la ciudad de Texcoco, a 05 de noviembre de 20",
+            "Regla": "escritura/instrumento numero"
+          },
+          "Volumen": {
+            "Valor": "1,204",
+            "Normalizado": "1204",
+            "Pagina": 1,
+            "Evidencia": "PEREYRA NOTARIO PÚBLICO No. 131 - TEXCOCO Hoja 1 VOLUMEN 1,204 ---------- INSTRUMENTO NÚMERO 47,015 --------- En la ciuda",
+            "Regla": "volumen"
+          },
+          "FechaDocumento": {
+            "Valor": "05 de noviembre de 2020",
+            "Normalizado": "2020-11-05",
+            "Pagina": 1,
+            "Evidencia": "RUMENTO NÚMERO 47,015 --------- En la ciudad de Texcoco, a 05 de noviembre de 2020, ANTE MÍ, LIC. ERNESTO GALINDO PEREYRA, Titular de la Notar",
+            "Regla": "lugar y fecha"
+          }
+        },
+        "Discrepancias": [],
+        "ExpedienteId": "EXP-0980122309000000"
+      },
+      {
+        "VersionEsquema": "1.1.0",
+        "Modo": "completo",
+        "NombreArchivo": "02 Predialv.pdf",
+        "RutaArchivo": "Predial/02 Predialv.pdf",
+        "TipoDocumento": "Predial",
+        "TipoDeclarado": "Predial",
+        "TipoDetectado": "Predial",
+        "TextoExtraido": "MUNICIPIO DE HUEHUETLÁN DEL MONTE, ESTADO DE MÉXICO\nTESORERÍA MUNICIPAL - CATASTRO E IMPUESTO PREDIAL\n\nRECIBO OFICIAL DE PAGO\nFOLIO: TM-2025-680332\n\nFECHA DE PAGO: 12/01/2025 14:54\n\nDATOS DEL PREDIO\n\nCLAVE CATASTRAL 098 01 223 19 00 0000\nPROPIETARIO / POSEEDOR BENITEZ ARROYO JORGE ARMANDO\n\nUBICACIÓN …[recortado]",
+        "Paginas": [
+          {
+            "Numero": 1,
+            "Texto": "MUNICIPIO DE HUEHUETLÁN DEL MONTE, ESTADO DE MÉXICO\nTESORERÍA MUNICIPAL - CATASTRO E IMPUESTO PREDIAL\n\nRECIBO OFICIAL DE PAGO\nFOLIO: TM-2025-680332\n\nFECHA DE PAGO: 12/01/2025 14:54\n\nDATOS DEL PREDIO …[recortado]",
+            "Metodo": "ocr",
+            "Motor": "tesseract",
+            "CalidadTexto": 0.927
+          }
+        ],
+        "Estado": "ok",
+        "CalidadTexto": 0.927,
+        "NumPaginas": 1,
+        "Hash": "c33d7238f450f74a",
+        "DuplicadoDe": null,
+        "CamposExtraidos": {
+          "ClaveCatastral": {
+            "Valor": "098 01 223 19 00 0000",
+            "Normalizado": "0980122319000000",
+            "Pagina": 1,
+            "Evidencia": "E PAGO: 12/01/2025 14:54 DATOS DEL PREDIO CLAVE CATASTRAL 098 01 223 19 00 0000 PROPIETARIO / POSEEDOR BENITEZ ARROYO JORGE ARMANDO UBICAC",
+            "Regla": "clave catastral"
+          },
+          "Propietario": {
+            "Valor": "BENITEZ ARROYO JORGE ARMANDO",
+            "Normalizado": "BENITEZ ARROYO JORGE ARMANDO",
+            "Pagina": 1,
+            "Evidencia": "LAVE CATASTRAL 098 01 223 19 00 0000 PROPIETARIO / POSEEDOR BENITEZ ARROYO JORGE ARMANDO UBICACIÓN LAURELES 51, COL. VILLA DE LOS FRESNOS SUPERFICI",
+            "Regla": "propietario/poseedor"
+          },
+          "Direccion": {
+            "Valor": "LAURELES 51, COL. VILLA DE LOS FRESNOS",
+            "Normalizado": "LAURELES 51 COLONIA VILLA DE LOS FRESNOS",
+            "Pagina": 1,
+            "Evidencia": "PIETARIO / POSEEDOR BENITEZ ARROYO JORGE ARMANDO UBICACIÓN LAURELES 51, COL. VILLA DE LOS FRESNOS SUPERFICIE TERRENO (M2) 290.00 SUPERFICIE CONSTRUCCIÓN (M2",
+            "Regla": "UBICACION"
+          },
+          "Colonia": {
+            "Valor": "VILLA DE LOS FRESNOS",
+            "Normalizado": "VILLA DE LOS FRESNOS",
+            "Pagina": 1,
+            "Evidencia": "PIETARIO / POSEEDOR BENITEZ ARROYO JORGE ARMANDO UBICACIÓN LAURELES 51, COL. VILLA DE LOS FRESNOS SUPERFICIE TERRENO (M2) 290.00 SUPERFICIE CONSTRUCCIÓN (M2",
+            "Regla": "componente de dirección (UBICACION)"
+          },
+          "Calle": {
+            "Valor": "LAURELES",
+            "Normalizado": "LAURELES",
+            "Pagina": 1,
+            "Evidencia": "PIETARIO / POSEEDOR BENITEZ ARROYO JORGE ARMANDO UBICACIÓN LAURELES 51, COL. VILLA DE LOS FRESNOS SUPERFICIE TERRENO (M2) 290.00 SUPERFICIE CONSTRUCCIÓN (M2",
+            "Regla": "componente de dirección (UBICACION)"
+          },
+          "NumeroOficial": {
+            "Valor": "51",
+            "Normalizado": "51",
+            "Pagina": 1,
+            "Evidencia": "PIETARIO / POSEEDOR BENITEZ ARROYO JORGE ARMANDO UBICACIÓN LAURELES 51, COL. VILLA DE LOS FRESNOS SUPERFICIE TERRENO (M2) 290.00 SUPERFICIE CONSTRUCCIÓN (M2",
+            "Regla": "componente de dirección (UBICACION)"
+          },
+          "Municipio": {
+            "Valor": "HUEHUETLÁN DEL MONTE",
+            "Normalizado": "HUEHUETLAN DEL MONTE",
+            "Pagina": 1,
+            "Evidencia": "MUNICIPIO DE HUEHUETLÁN DEL MONTE, ESTADO DE MÉXICO TESORERÍA MUNICIPAL - CATASTRO E IMPUESTO",
+            "Regla": "encabezado del emisor"
+          },
+          "Estado": {
+            "Valor": "MÉXICO",
+            "Normalizado": "MEXICO",
+            "Pagina": 1,
+            "Evidencia": "MUNICIPIO DE HUEHUETLÁN DEL MONTE, ESTADO DE MÉXICO TESORERÍA MUNICIPAL - CATASTRO E IMPUESTO PREDIAL RECIBO O",
+            "Regla": "mención 'Estado de'"
+          },
+          "SuperficieTerreno": {
+            "Valor": "290.00",
+            "Normalizado": 290.0,
+            "Pagina": 1,
+            "Evidencia": "RELES 51, COL. VILLA DE LOS FRESNOS SUPERFICIE TERRENO (M2) 290.00 SUPERFICIE CONSTRUCCIÓN (M2) 0.00 VALOR CATASTRAL $ 785,0",
+            "Regla": "superficie terreno"
+          },
+          "SuperficieConstruccion": {
+            "Valor": "0.00",
+            "Normalizado": 0.0,
+            "Pagina": 1,
+            "Evidencia": "UPERFICIE TERRENO (M2) 290.00 SUPERFICIE CONSTRUCCIÓN (M2) 0.00 VALOR CATASTRAL $ 785,030.00 USO DEL PREDIO BALDÍO URBANO",
+            "Regla": "superficie construccion"
+          },
+          "Folio": {
+            "Valor": "TM-2025-680332",
+            "Normalizado": "TM2025680332",
+            "Pagina": 1,
+            "Evidencia": "CATASTRO E IMPUESTO PREDIAL RECIBO OFICIAL DE PAGO FOLIO: TM-2025-680332 FECHA DE PAGO: 12/01/2025 14:54 DATOS DEL PREDIO CLAVE C",
+            "Regla": "folio/oficio"
+          },
+          "FechaDocumento": {
+            "Valor": "12/01/2025",
+            "Normalizado": "2025-01-12",
+            "Pagina": 1,
+            "Evidencia": "ECIBO OFICIAL DE PAGO FOLIO: TM-2025-680332 FECHA DE PAGO: 12/01/2025 14:54 DATOS DEL PREDIO CLAVE CATASTRAL 098 01 223 19 00 0",
+            "Regla": "fecha de expedicion"
+          },
+          "EjercicioFiscal": {
+            "Valor": "2025",
+            "Normalizado": [
+              "2025"
+            ],
+            "Pagina": 1,
+            "Evidencia": "IN IMPUESTO ADICIONAL RECARGOS MULTAS BONIFICACIÓN SUBTOTAL 2025 1 6 2,567.16 190.16 0.00 0.00 -380.32 2,377.00 TOTAL PAGAD",
+            "Regla": "tabla año"
+          }
+        },
+        "Discrepancias": [],
+        "ExpedienteId": "EXP-0980122309000000"
+      },
+      {
+        "VersionEsquema": "1.1.0",
+        "Modo": "completo",
+        "NombreArchivo": "04 Licencia de Uso de Suelov.pdf",
+        "RutaArchivo": "Uso_de_suelo/04 Licencia de Uso de Suelov.pdf",
+        "TipoDocumento": "UsoDeSuelo",
+        "TipoDeclarado": "UsoDeSuelo",
+        "TipoDetectado": "UsoDeSuelo",
+        "TextoExtraido": "o HUEN\n\no €\n>\n%\nz\nESCUDO o\ne A\n\nE\n\nH. AYUNTAMIENTO CONSTITUCIONAL DE HUEHUETLÁN DEL MONTE\nEstado de México - Administración 2025-2027\n\nDIRECCIÓN DE DESARROLLO URBANO Y METROPOLITANO\n\n>\n\nLS\n\nii —e] —l— —]]ZZ€E< ooo\n\nLICENCIA DE USO DEL SUELO FOLIO: DDUM/LUS/0377/2025\n\nNOMBRE JUAN CARLOS BENÍTEZ ARROY …[recortado]",
+        "Paginas": [
+          {
+            "Numero": 1,
+            "Texto": "o HUEN\n\no €\n>\n%\nz\nESCUDO o\ne A\n\nE\n\nH. AYUNTAMIENTO CONSTITUCIONAL DE HUEHUETLÁN DEL MONTE\nEstado de México - Administración 2025-2027\n\nDIRECCIÓN DE DESARROLLO URBANO Y METROPOLITANO\n\n>\n\nLS\n\nii —e] —l— …[recortado]",
+            "Metodo": "ocr",
+            "Motor": "tesseract",
+            "CalidadTexto": 0.861
+          }
+        ],
+        "Estado": "ok",
+        "CalidadTexto": 0.861,
+        "NumPaginas": 1,
+        "Hash": "83189c968feb27e9",
+        "DuplicadoDe": null,
+        "CamposExtraidos": {
+          "ClaveCatastral": {
+            "Valor": "098 01 223 09 00 0000",
+            "Normalizado": "0980122309000000",
+            "Pagina": 1,
+            "Evidencia": "IDAD Huehuetlán del Monte, Estado de México CLAVE CATASTRAL 098 01 223 09 00 0000 2.50 m? ZONA (PMDU) CRU-200-A CORREDOR URBANO DENSIDAD 20",
+            "Regla": "clave catastral"
+          },
+          "Propietario": {
+            "Valor": "JUAN CARLOS BENÍTEZ ARROYO",
+            "Normalizado": "JUAN CARLOS BENITEZ ARROYO",
+            "Pagina": 1,
+            "Evidencia": "LICENCIA DE USO DEL SUELO FOLIO: DDUM/LUS/0377/2025 NOMBRE JUAN CARLOS BENÍTEZ ARROYO LOCALIDAD Huehuetlán del Monte, Estado de México CLAVE CATA",
+            "Regla": "nombre"
+          },
+          "Municipio": {
+            "Valor": "HUEHUETLÁN DEL MONTE",
+            "Normalizado": "HUEHUETLAN DEL MONTE",
+            "Pagina": 1,
+            "Evidencia": "€ > % z ESCUDO o e A E H. AYUNTAMIENTO CONSTITUCIONAL DE HUEHUETLÁN DEL MONTE Estado de México - Administración 2025-2027 DIRECCIÓN DE D",
+            "Regla": "encabezado del emisor"
+          },
+          "Folio": {
+            "Valor": "DDUM/LUS/0377/2025",
+            "Normalizado": "DDUM/LUS/0377/2025",
+            "Pagina": 1,
+            "Evidencia": "ii —e] —l— —]]ZZ€E< ooo LICENCIA DE USO DEL SUELO FOLIO: DDUM/LUS/0377/2025 NOMBRE JUAN CARLOS BENÍTEZ ARROYO LOCALIDAD Huehuetlán del",
+            "Regla": "folio/oficio"
+          },
+          "FechaDocumento": {
+            "Valor": "02 DE JUNIO DE 2025",
+            "Normalizado": "2025-06-02",
+            "Pagina": 1,
+            "Evidencia": "edio a un uso distinto al autorizado. FECHA DE EXPEDICIÓN: 02 DE JUNIO DE 2025 VIGENCIA: 02 DE JUNIO DE 2026 ORDEN DE PAGO: 55789 Sas AU",
+            "Regla": "fecha de expedicion"
+          }
+        },
+        "Discrepancias": [],
+        "ExpedienteId": "EXP-0980122309000000"
+      }
+    ],
+    "Modo": "completo"
+  }
+]

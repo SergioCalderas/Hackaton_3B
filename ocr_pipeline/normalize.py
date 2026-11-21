@@ -87,7 +87,7 @@ def norm_cuenta(s: str | None) -> str:
 
 def parse_number(s: str | None) -> float | None:
     """'1,039.71' -> 1039.71 ; '536,82' -> 536.82 ; '783:20' -> 783.2."""
-    if not s:
+    if not s or not re.match(r"^\s*\$?\s*[\d.,]*\d", s):  # debe empezar con un número ("m2" no lo es)
         return None
     t = s.strip().replace(" ", "").replace(":", ".")
     t = re.sub(r"[^\d.,]", "", t)

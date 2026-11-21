@@ -403,3 +403,29 @@ def agrupar(docs: list[dict], cfg: MatchConfig | None = None) -> dict:
 def verificar(docs: list[dict], cfg: MatchConfig | None = None) -> dict:
     """Modo producción: todos los documentos son del mismo inmueble; se verifica su coherencia."""
     return construir_expediente(docs, cfg or MatchConfig())
+
+
+# ---------------------------------------------------------------------------
+# Modo compacto (para el LLM): sin texto completo
+# ---------------------------------------------------------------------------
+MODOS = ("completo", "compacto")
+
+
+def compactar_documento(doc: dict) -> dict:
+    """Quita TextoExtraido y el texto de las páginas; conserva solo las páginas donde
+    se encontró algún campo (con sus metadatos). Campos, evidencia y discrepancias quedan intactos."""
+    usadas = {c.get("Pagina") for c in doc.get("CamposExtraidos", {}).values()}
+    paginas = [{**p, "Texto": None} for p in doc.get("Paginas", []) if p["Numero"] in usadas]
+    return {**doc, "Modo": "compacto", "TextoExtraido": None, "Paginas": paginas}
+
+
+def compactar_expediente(exp: dict) -> dict:
+    return {**exp, "Modo": "compacto", "Documentos": [compactar_documento(d) for d in exp["Documentos"]]}
+
+
+def aplicar_modo(obj: dict, modo: str, es_expediente: bool) -> dict:
+    if modo not in MODOS:
+        raise ValueError(f"modo debe ser uno de {MODOS}, no {modo!r}")
+    if modo == "completo":
+        return {**obj, "Modo": "completo"}
+    return compactar_expediente(obj) if es_expediente else compactar_documento(obj)

@@ -32,3 +32,6 @@ python-multipart==0.0.20
 # --- Utilidades ---
 tqdm==4.67.1
 openpyxl==3.1.5
+
+# --- Pruebas ---
+pytest==8.3.5

@@ -21,7 +21,7 @@ from typing import Iterable
 from .config import PipelineConfig
 from .export import build_document
 from .loaders import sha256_file
-from .matching import MatchConfig, canonical_tipo, enriquecer_documento, verificar
+from .matching import MODOS, MatchConfig, aplicar_modo, canonical_tipo, enriquecer_documento, verificar
 from .pipeline import EngineProvider, process_document
 from .schemas import VERSION_ESQUEMA, Documento, Expediente
 
@@ -61,13 +61,16 @@ def precargar() -> str:
 
 
 def procesar_documento(ruta: str | Path, tipo_declarado: str | None = None,
-                       nombre_original: str | None = None) -> dict:
+                       nombre_original: str | None = None, modo: str = "completo") -> dict:
     """OCR + extracción de campos de UN documento. Devuelve un dict con el formato `Documento`.
 
     tipo_declarado: "Predial" | "Alineamiento" | "Escritura" | "UsoDeSuelo" (acepta variantes como
     "uso de suelo"); si no se da, se usa el tipo detectado por contenido.
     nombre_original: nombre con el que el usuario subió el archivo (para NombreArchivo/RutaArchivo).
+    modo: "completo" (con texto) | "compacto" (solo campos, evidencia, discrepancias y páginas con campos).
     """
+    if modo not in MODOS:
+        raise ValueError(f"modo debe ser uno de {MODOS}, no {modo!r}")
     path = Path(ruta)
     if not path.is_file():
         raise FileNotFoundError(path)
@@ -89,19 +92,23 @@ def procesar_documento(ruta: str | Path, tipo_declarado: str | None = None,
 
     meta = {**cached["meta"], "source_file": nombre, "doc_type": ""}
     doc = build_document(meta, cached["txt"], tipo_declarado=tipo)
-    doc = enriquecer_documento(doc, tipo)
+    doc = aplicar_modo(enriquecer_documento(doc, tipo), modo, es_expediente=False)
     Documento.model_validate(doc)
     return doc
 
 
 def verificar_expediente(documentos: Iterable[tuple[str | Path, str | None] | str | Path | dict],
-                         cfg: MatchConfig | None = None) -> dict:
+                         cfg: MatchConfig | None = None, modo: str = "completo") -> dict:
     """Verifica la coherencia de los documentos de UN inmueble.
 
     documentos: lista de (ruta, tipo_declarado), rutas sueltas, o dicts ya devueltos por
     procesar_documento. Devuelve un dict con el formato `Expediente` (CamposCoinciden,
     CamposNoCoinciden, DocumentosFaltantes, PuntajeMatch, Alertas, Documentos...).
+    modo: "completo" (Documentos con texto) | "compacto" (sin texto: campos, evidencia,
+    discrepancias y páginas donde se encontró cada campo). La verificación es idéntica en ambos.
     """
+    if modo not in MODOS:
+        raise ValueError(f"modo debe ser uno de {MODOS}, no {modo!r}")
     docs = []
     for item in documentos:
         if isinstance(item, dict):
@@ -113,6 +120,6 @@ def verificar_expediente(documentos: Iterable[tuple[str | Path, str | None] | st
             docs.append(procesar_documento(item))
     if not docs:
         raise ValueError("Se requiere al menos un documento")
-    exp = {"VersionEsquema": VERSION_ESQUEMA, **verificar(docs, cfg)}
+    exp = aplicar_modo({"VersionEsquema": VERSION_ESQUEMA, **verificar(docs, cfg)}, modo, es_expediente=True)
     Expediente.model_validate(exp)
     return exp

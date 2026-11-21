@@ -1,7 +1,40 @@
+# Entornos
 .venv/
+venv/
+
+# Salidas generadas por el pipeline (se regeneran con run_ocr.py / export_json.py / compare_engines.py)
 output/
+output_*/
 comparison/
+*.xlsx
+*.tmp
+
+# Modelos y datos de OCR locales
 tessdata/
+.paddlex/
+.paddleocr/
+paddle_models/
+*.pdmodel
+*.pdiparams
+
+# Python
 __pycache__/
 *.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
 *.log
+
+# Editores / SO
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Nota: las 4 carpetas de documentos del reto (Alineamiento_y_Numero_Oficial/, Escritura/,
+# Predial/, Uso_de_suelo/) viven en main y se dejan trackeadas a propósito (dataset compartido
+# del equipo). Para tus propios datos de prueba usa una carpeta local_data/ (ignorada):
+local_data/
