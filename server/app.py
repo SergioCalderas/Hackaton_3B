@@ -25,6 +25,14 @@ try:
 except ImportError as e:  # faltan dependencias del OCR: el login sigue funcionando
     print(f"[server] Pipeline de documentos deshabilitado: {e}", flush=True)
 
+# Análisis multiagente con LLM (analisis/, LLM_PROVIDER=local|online). Ver README_ANALISIS.md.
+try:
+    from procesamiento.api_analisis import bp as analisis_bp  # noqa: E402
+
+    app.register_blueprint(analisis_bp)
+except ImportError as e:
+    print(f"[server] Análisis con LLM deshabilitado: {e}", flush=True)
+
 
 def role_name(tipo_usuario):
     return "admin" if tipo_usuario == 1 else "gestor"

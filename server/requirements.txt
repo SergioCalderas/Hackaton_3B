@@ -7,3 +7,5 @@ python-dotenv>=1.0
 -r ../ocr_pipeline/requirements-servidor.txt
 # Opcional: dictamen con LLM (DICTAMEN_LLM=1). En Windows requiere rutas largas habilitadas o un venv.
 anthropic>=2.12
+# Análisis multiagente con LLM (POST /api/analisis): LangChain + LangGraph + Ollama/Claude
+-r ../requirements-llm.txt

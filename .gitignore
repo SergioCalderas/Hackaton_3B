@@ -57,3 +57,6 @@ desktop.ini
 # Predial/, Uso_de_suelo/) se dejan trackeadas a propósito (dataset compartido del equipo).
 # Para datos de prueba propios usa local_data/ (ignorada):
 local_data/
+
+# Análisis con LLM (copias servidas por el visor Streamlit)
+static/
