@@ -4,3 +4,6 @@ dist
 .env
 .cursor/
 .vite
+.env
+.env*.local
+.cursor/

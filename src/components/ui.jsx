@@ -21,6 +21,18 @@ export function Progress({ value, label, tone = 'red' }) {
   );
 }
 
+// Avance por pasos: un segmento por documento aprobado
+export function Steps({ done, total, label }) {
+  return (
+    <div className="progress-wrap">
+      <div className="progress-label"><span>{label}</span><strong>{done} de {total}</strong></div>
+      <div className="steps" role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total}>
+        {Array.from({ length: total }, (_, i) => <i key={i} className={i < done ? 'on' : ''} />)}
+      </div>
+    </div>
+  );
+}
+
 // Barra apilada: segmentos [{value, tone, label}]
 export function StackBar({ segments }) {
   const total = segments.reduce((a, s) => a + s.value, 0) || 1;

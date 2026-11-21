@@ -263,3 +263,17 @@ summary { cursor: pointer; font-weight: 600; }
 .pending li.sel { cursor: pointer; border: 2px solid transparent; }
 .pending li.sel-on { border-color: var(--amber); background: rgba(255, 255, 255, 0.16); }
 .mini-on { border-color: var(--red); box-shadow: var(--shadow-sm); }
+
+/* Login: Google y separador */
+.google-box { display: flex; justify-content: center; margin: 14px 0 4px; min-height: 44px; }
+.login-card > .btn-ghost { margin-top: 14px; }
+.or { display: flex; align-items: center; gap: 10px; color: var(--red); font-size: 13px; font-weight: 600; margin-top: 8px; }
+.or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+/* Avance por pasos (1 segmento por documento aprobado) */
+.steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.steps i { height: 10px; border-radius: 999px; background: var(--gray-soft); }
+.steps i.on { background: var(--green); }
+
+/* Etiquetas legibles sobre fondo oscuro */
+.navy-card .pill { background: #fff; color: #000; font-weight: 900; }

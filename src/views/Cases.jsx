@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../store.jsx';
-import { Card, Pill, Progress } from '../components/ui.jsx';
-import { caseStatus, completeness, docsOf, reviewProgress, approvedCount } from '../lib/selectors.js';
+import { Card, Pill, Steps } from '../components/ui.jsx';
+import { TOTAL_DOCS, approvedCount, caseStatus, docsOf } from '../lib/selectors.js';
 
 const FILTERS = [
   { key: 'todos', label: 'Todos' },
@@ -42,8 +42,7 @@ export default function Cases({ onOpenCase }) {
               <Pill status={status} />
             </div>
             <p className="muted small">{c.address}</p>
-            <Progress label={`Revisión · ${approvedCount(ds)}/${ds.length} documentos aprobados`} value={reviewProgress(ds)} tone="green" />
-            <Progress label="Completitud documental" value={completeness(ds)} />
+            <Steps label="Avance de revisión" done={approvedCount(ds)} total={TOTAL_DOCS} />
           </button>
         ))}
         {rows.length === 0 && <p className="muted">No hay casos con ese filtro.</p>}

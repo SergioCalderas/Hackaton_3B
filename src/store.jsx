@@ -1,17 +1,10 @@
-import React, { createContext, useContext, useEffect, useReducer } from 'react';
+import React, { createContext, useContext, useEffect, useReducer, useState } from 'react';
+import { decryptJSON, encryptJSON } from './lib/secure.js';
 import { buildSeed } from './lib/seed.js';
 import { DOC_LABEL, docsOf, canAcceptCase } from './lib/selectors.js';
 
-const KEY = '3b-prefactibilidad-v2';
+const KEY = '3b-prefactibilidad-v3';
 const Ctx = createContext(null);
-
-function load() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (e) { /* sin almacenamiento */ }
-  return buildSeed();
-}
 
 let seq = 0;
 const logEntry = (s, caseId, action) => ({
@@ -27,6 +20,8 @@ const caseName = (s, id) => s.cases.find((c) => c.id === id).name;
 function reducer(s, a) {
   const now = new Date().toISOString();
   switch (a.type) {
+    case 'HYDRATE':
+      return { ...a.data, session: null };
     case 'LOGIN': {
       const user = { ...a.user };
       delete user.password;
@@ -35,6 +30,8 @@ function reducer(s, a) {
         : [...s.users, user];
       return { ...s, session: user.id, users };
     }
+    case 'LOGIN_GOOGLE':
+      return { ...s, users: s.users.some((u) => u.id === a.user.id) ? s.users : [...s.users, a.user], session: a.user.id };
     case 'LOGOUT':
       return { ...s, session: null };
     case 'RESET':
@@ -89,11 +86,33 @@ function reducer(s, a) {
   }
 }
 
+const OLD_KEYS = ['3b-prefactibilidad-v1', '3b-prefactibilidad-v2']; // versiones antiguas guardaban contraseñas en claro
+
 export function StoreProvider({ children }) {
-  const [state, dispatch] = useReducer(reducer, null, load);
+  const [state, dispatch] = useReducer(reducer, null, buildSeed);
+  const [ready, setReady] = useState(false);
+
+  // Carga: se descifra lo guardado (AES-GCM). La sesión nunca se persiste.
   useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignorar */ }
-  }, [state]);
+    (async () => {
+      try {
+        OLD_KEYS.forEach((k) => localStorage.removeItem(k));
+        const raw = localStorage.getItem(KEY);
+        if (raw) dispatch({ type: 'HYDRATE', data: await decryptJSON(raw) });
+      } catch (e) { /* datos ilegibles: se parte del seed */ }
+      setReady(true);
+    })();
+  }, []);
+
+  // Guardado cifrado en reposo
+  useEffect(() => {
+    if (!ready) return;
+    (async () => {
+      try { localStorage.setItem(KEY, await encryptJSON({ ...state, session: null })); } catch (e) { /* ignorar */ }
+    })();
+  }, [state, ready]);
+
+  if (!ready) return null;
   return <Ctx.Provider value={{ state, dispatch }}>{children}</Ctx.Provider>;
 }
 
