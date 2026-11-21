@@ -48,32 +48,36 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // Solo en desarrollo y sin backend: cuentas demo locales (hash SHA-256 en seed.js). No existe en el build de producción.
+  const localLogin = async () => {
+    const h = await hashPassword(password);
+    const u = state.users.find((x) => x.hash && x.email === email.trim().toLowerCase() && x.hash === h);
+    if (u) dispatch({ type: 'LOGIN', user: u });
+    else setError('Correo o contraseña incorrectos.');
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     setError('');
+    let res;
     try {
-      const res = await fetch('/api/login', {
+      res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ correo: email.trim(), contrasena: password }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error || 'Correo o contraseña incorrectos.');
-        return;
-      }
-      dispatch({ type: 'LOGIN', user: data.user });
     } catch {
-      // Solo en desarrollo y sin backend: cuentas demo locales (hash SHA-256 en seed.js). No existe en el build de producción.
-      if (import.meta.env.DEV) {
-        const h = await hashPassword(password);
-        const u = state.users.find((x) => x.hash && x.email === email.trim().toLowerCase() && x.hash === h);
-        if (u) { dispatch({ type: 'LOGIN', user: u }); return; }
-        setError('Sin conexión con el servidor y la cuenta no es una cuenta demo local.');
-        return;
-      }
-      setError('No hay conexión con el servidor.');
+      res = null; // sin conexión
     }
+    // Backend caído: sin respuesta o error 5xx (el proxy de Vite responde 500/502/504 si no hay servidor)
+    const backendDown = !res || res.status >= 500;
+    if (backendDown) {
+      if (import.meta.env.DEV) return localLogin();
+      return setError('No hay conexión con el servidor.');
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return setError(data.error || 'Correo o contraseña incorrectos.');
+    dispatch({ type: 'LOGIN', user: data.user });
   };
 
   return (
