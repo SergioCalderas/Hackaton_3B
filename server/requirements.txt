@@ -1,0 +1,9 @@
+flask>=3.1
+psycopg[binary]>=3.2
+bcrypt>=4.2
+python-dotenv>=1.0
+-r ../filtro_calidad/requirements.txt
+# Fase 2 (extracción) y validación cruzada: ocr_pipeline sin Paddle. Requiere Tesseract + tessdata/.
+-r ../ocr_pipeline/requirements-servidor.txt
+# Opcional: dictamen con LLM (DICTAMEN_LLM=1). En Windows requiere rutas largas habilitadas o un venv.
+anthropic>=2.12

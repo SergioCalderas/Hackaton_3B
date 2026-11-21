@@ -5,8 +5,12 @@ import hashlib
 from pathlib import Path
 
 import cv2
-import fitz  # PyMuPDF
 import numpy as np
+
+try:  # PyMuPDF >= 1.24.3 expone `pymupdf`; `fitz` está obsoleto desde la 2.x
+    import pymupdf as fitz
+except ImportError:  # pragma: no cover - versiones antiguas
+    import fitz
 from PIL import Image, ImageOps
 
 from .config import IMAGE_EXTENSIONS, PDF_EXTENSIONS
