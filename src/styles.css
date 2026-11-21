@@ -257,3 +257,8 @@ summary { cursor: pointer; font-weight: 600; }
 .tl-body span { font-size: 13px; color: var(--ink-2); }
 .tl-time { font-weight: 900; color: var(--navy); font-size: 14px; }
 @media (max-width: 960px) { .tl-item { grid-template-columns: 42px 1fr; } .tl-time { grid-column: 2; } }
+
+/* Selección en dashboard */
+.pending li.sel { cursor: pointer; border: 2px solid transparent; }
+.pending li.sel-on { border-color: var(--amber); background: rgba(255, 255, 255, 0.16); }
+.mini-on { border-color: var(--red); box-shadow: var(--shadow-sm); }
