@@ -1,8 +1,14 @@
 node_modules
 dist
 *.zip
+.env
+.cursor/
 .vite
 .env
 .env*.local
 .cursor/
 certs/
+__pycache__/
+*.pyc
+procesamiento/_trabajo/
+filtro_calidad/_subidas/

@@ -20,7 +20,7 @@ const ADMIN_TABS = [
 
 export default function App() {
   const { state, dispatch } = useStore();
-  const user = state.users.find((u) => u.id === state.session);
+  const user = state.users.find((u) => String(u.id) === String(state.session));
   const [tab, setTab] = useState('');
   const [caseId, setCaseId] = useState(null);
 

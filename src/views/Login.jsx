@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store.jsx';
 import logo from '../assets/images/logo-3b.png';
-import { hashPassword } from '../lib/secure.js';
 import { GOOGLE_CLIENT_ID, loadGoogle, newNonce, userFromCredential } from '../lib/auth.js';
 
 function GoogleButton({ onError }) {
@@ -43,17 +42,29 @@ function GoogleButton({ onError }) {
 }
 
 export default function Login() {
-  const { state, dispatch } = useStore();
+  const { dispatch } = useStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
-    const h = await hashPassword(password);
-    const u = state.users.find((x) => x.email === email.trim().toLowerCase() && x.hash === h);
-    if (!u) return setError('Correo o contraseña incorrectos.');
-    dispatch({ type: 'LOGIN', userId: u.id });
+    setError('');
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo: email.trim(), contrasena: password }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || 'Correo o contraseña incorrectos.');
+        return;
+      }
+      dispatch({ type: 'LOGIN', user: data.user });
+    } catch {
+      setError('No hay conexión con el servidor.');
+    }
   };
 
   return (
@@ -68,11 +79,11 @@ export default function Login() {
         <GoogleButton onError={setError} />
         <div className="or"><span>o con correo</span></div>
         <label className="field">
-          <span>Correo</span>
+          <span><span className="req">*</span> Correo</span>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" required />
         </label>
         <label className="field">
-          <span>Contraseña</span>
+          <span><span className="req">*</span> Contraseña</span>
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
         </label>
         {error && <p className="error">{error}</p>}

@@ -39,6 +39,6 @@ const https = hasCert ? { key: fs.readFileSync('certs/localhost-key.pem'), cert:
 
 export default defineConfig({
   plugins: [react(), ...(hasCert ? [] : [basicSsl()]), cspPlugin],
-  server: { headers, https, allowedHosts: ['.trycloudflare.com'] },
+  server: { headers, https, allowedHosts: ['.trycloudflare.com'], proxy: { '/api': 'http://127.0.0.1:5000' } },
   preview: { headers, https },
 });

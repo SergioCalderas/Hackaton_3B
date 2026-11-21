@@ -22,8 +22,14 @@ function reducer(s, a) {
   switch (a.type) {
     case 'HYDRATE':
       return { ...a.data, session: null };
-    case 'LOGIN':
-      return { ...s, session: a.userId };
+    case 'LOGIN': {
+      const user = { ...a.user };
+      delete user.password;
+      const users = s.users.some((u) => String(u.id) === String(user.id))
+        ? s.users.map((u) => (String(u.id) === String(user.id) ? user : u))
+        : [...s.users, user];
+      return { ...s, session: user.id, users };
+    }
     case 'LOGIN_GOOGLE':
       return { ...s, users: s.users.some((u) => u.id === a.user.id) ? s.users : [...s.users, a.user], session: a.user.id };
     case 'LOGOUT':

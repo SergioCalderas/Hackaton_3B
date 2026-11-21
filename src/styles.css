@@ -190,6 +190,7 @@ a.btn { text-decoration: none; display: inline-block; }
 .check-fail { background: var(--red-soft); } .check-warn { background: var(--amber-soft); } .check-ok { background: var(--green-soft); }
 .field { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
 .field span { font-weight: 600; font-size: 13px; }
+.field .req { color: var(--red); margin-right: 4px; }
 .field em { font-weight: 400; color: var(--ink-2); font-style: normal; }
 textarea { resize: vertical; width: 100%; }
 .notice { border-radius: 14px; padding: 12px 14px; margin-top: 14px; font-size: 14px; }
