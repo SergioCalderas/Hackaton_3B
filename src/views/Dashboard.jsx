@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useStore } from '../store.jsx';
-import { Card, MapCard, Pill, StackBar, Steps } from '../components/ui.jsx';
-import { DOC_LABEL, TOTAL_DOCS, approvedCount, caseStatus, docKpis, docState, docsOf, lastActivity } from '../lib/selectors.js';
+import { Card, MapCard, Pill, Steps } from '../components/ui.jsx';
+import { DOC_LABEL, inDays, TOTAL_DOCS, approvedCount, caseStatus, docKpis, docState, docsOf, lastActivity } from '../lib/selectors.js';
 
-export default function Dashboard({ user, onOpenCase, onNav }) {
+export default function Dashboard({ user, days, onOpenCase, onNav }) {
   const { state } = useStore();
   const { cases, docs } = state;
   const dk = docKpis(docs);
   // Los documentos faltantes no se muestran: solo los completos, pendientes de aprobar
-  const pending = docs.filter((d) => ['sin_revisar', 'en_revision'].includes(docState(d)));
+  const okCases = new Set(cases.filter((c) => inDays(c, days)).map((c) => c.id));
+  const pending = docs.filter((d) => okCases.has(d.caseId) && ['sin_revisar', 'en_revision'].includes(docState(d)));
   // Se selecciona un solo documento; el mapa muestra la ubicación (lat/lng) que trae la BD para su caso/propuesta de unidad
   const [selDocId, setSelDocId] = useState(null);
   const selDoc = pending.find((d) => d.id === selDocId) || pending[0];
@@ -30,30 +31,16 @@ export default function Dashboard({ user, onOpenCase, onNav }) {
 
   return (
     <div className="grid">
-      <Card className="span-12 hero">
-        <h1>Hola, {user.name.split(' ')[0]}</h1>
-        <p className="muted">
-          Tienes {pending.length} documentos por aprobar en {new Set(pending.map((d) => d.caseId)).size} casos.
-        </p>
-        <div className="tiles">
-          {tiles.map((t) => (
-            <div key={t.k} className={`tile tile-${t.tone}`}>
-              <strong>{dk[t.k]}</strong>
-              <span>{t.label}</span>
-            </div>
+      <Card className="span-12" title="Avance por caso · últimos 8" action={<button className="btn btn-ghost btn-sm" onClick={() => onNav('casos')}>Todos los casos →</button>}>
+        <div className="mini-cases">
+          {recent.map(({ c, ds }) => (
+            <button key={c.id} className="mini-case" onClick={() => onOpenCase(c.id)}>
+              <div className="row between"><strong>{c.name}</strong><Pill status={caseStatus(c, ds)} /></div>
+              <Steps label="Documentos aprobados" done={approvedCount(ds)} total={TOTAL_DOCS} />
+            </button>
           ))}
         </div>
-        <StackBar
-          segments={[
-            { label: 'Aprobados', value: dk.aprobado, tone: 'green' },
-            { label: 'En revisión', value: dk.en_revision, tone: 'amber' },
-            { label: 'Sin revisar', value: dk.sin_revisar, tone: 'gray' },
-            { label: 'Rechazados', value: dk.rechazado, tone: 'red' },
-          ]}
-        />
-        <p className="muted small">{dk.total - dk.faltante} documentos recibidos</p>
       </Card>
-
       <Card className="span-6 navy-card" title="Documentos por aprobar">
         <ul className="pending">
           {pending.length === 0 && <li className="muted-light">No hay documentos pendientes 🎉</li>}
@@ -77,16 +64,6 @@ export default function Dashboard({ user, onOpenCase, onNav }) {
         <MapCard item={selected} title={`Ubicación · ${selected ? selected.name : ''}`} />
       </div>
 
-      <Card className="span-12" title="Avance por caso · últimos 8" action={<button className="btn btn-ghost btn-sm" onClick={() => onNav('casos')}>Todos los casos →</button>}>
-        <div className="mini-cases">
-          {recent.map(({ c, ds }) => (
-            <button key={c.id} className="mini-case" onClick={() => onOpenCase(c.id)}>
-              <div className="row between"><strong>{c.name}</strong><Pill status={caseStatus(c, ds)} /></div>
-              <Steps label="Documentos aprobados" done={approvedCount(ds)} total={TOTAL_DOCS} />
-            </button>
-          ))}
-        </div>
-      </Card>
     </div>
   );
 }

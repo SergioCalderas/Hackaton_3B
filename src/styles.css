@@ -179,6 +179,13 @@ a.btn { text-decoration: none; display: inline-block; }
 /* Modal */
 .overlay { position: fixed; inset: 0; background: rgba(28, 36, 75, 0.45); display: grid; place-items: center; padding: 16px; z-index: 10; overflow-y: auto; }
 .modal { background: #fff; border-radius: var(--radius); padding: 26px; width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; box-shadow: var(--shadow-sm); }
+.modal.doc-modal { max-width: 1120px; }
+.doc-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 1fr); gap: 20px; align-items: stretch; margin-top: 8px; }
+.doc-data { min-width: 0; }
+.doc-view { min-width: 0; display: flex; }
+.doc-view .pdf-box { flex: 1; margin-top: 0; }
+.doc-view .pdf-box iframe { height: 100%; min-height: 560px; }
+.doc-view .doc-preview { flex: 1; margin-top: 0; min-height: 240px; }
 .modal-sm { max-width: 460px; }
 .doc-preview { display: flex; gap: 14px; align-items: center; background: var(--gray-soft); border-radius: 16px; padding: 14px; margin-top: 14px; }
 .doc-preview > span { font-size: 28px; }
@@ -221,6 +228,8 @@ summary { cursor: pointer; font-weight: 600; }
   .tiles { grid-template-columns: repeat(2, 1fr); }
   .two-bars { grid-template-columns: 1fr; }
   .login { grid-template-columns: 1fr; }
+  .doc-split { grid-template-columns: 1fr; }
+  .doc-view .pdf-box iframe { min-height: 380px; height: 420px; }
   .doc-row { grid-template-columns: 1fr 1fr; }
   .user-info { display: none; }
   h1 { font-size: 28px; }
@@ -276,7 +285,7 @@ summary { cursor: pointer; font-weight: 600; }
 .steps i.on { background: var(--green); }
 
 /* Etiquetas legibles sobre fondo oscuro */
-.navy-card .pill { background: #fff; color: #000; font-weight: 900; }
+.navy-card .pill { font-weight: 900; }
 
 .slogan { font-size: 26px !important; font-weight: 900 !important; font-style: italic; }
 
@@ -346,7 +355,6 @@ body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 
 .pill-red { background: linear-gradient(135deg, #feeeee, #fbd3d5); }
 .pill-gray { background: linear-gradient(135deg, #f4f0f0, #e6e0e0); }
 .pill-navy { background: linear-gradient(135deg, #eaecf6, #d6daee); }
-.navy-card .pill { background: linear-gradient(135deg, #ffffff, #f1eded); }
 .chip { background: linear-gradient(135deg, #ffffff, #f6eeee); }
 .chip-on { background: linear-gradient(135deg, #ee3a41, #d7121e); }
 .tile-green { background: linear-gradient(135deg, #e8f7f0, #d2efe1); }
@@ -380,3 +388,34 @@ body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 
   background: #fff; color: #1c244b; font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 16px 16px 16px 4px;
   box-shadow: 0 4px 14px rgba(28,36,75,.14); }
 @media (max-width: 800px) { .rooster { width: 96px; } }
+
+/* Barra provisional de cambio de usuario (solo dev) */
+.devswitch { position: sticky; top: 0; z-index: 100; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 3px 12px; background: #1c244b; color: #fff; font-size: 11px; }
+.devswitch b { background: #e31b23; border-radius: 4px; padding: 0 6px; letter-spacing: .06em; }
+.devswitch span { opacity: .7; }
+.devswitch button { font: inherit; font-weight: 700; color: #fff; background: rgba(255,255,255,.14); border: 0; border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+.devswitch button:hover { background: rgba(255,255,255,.28); }
+.devswitch button.on { background: #fff; color: #1c244b; }
+
+/* Tabla de casos del gestor (clic en la fila) */
+.matrix-click tbody tr { cursor: pointer; }
+.matrix-click tbody tr:hover, .matrix-click tbody tr:focus-visible { background: #f6f1f2; outline: none; }
+/* Marca: título y, debajo, su propia etiqueta de filtro por días */
+.brand { gap: 12px; }
+.brand-col { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.days-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; background: rgba(255,255,255,.14); border-radius: 999px; padding: 2px 4px 2px 10px; }
+.days-chip select { font: inherit; font-weight: 800; color: var(--navy); background: #fff; border: 0; border-radius: 999px; padding: 1px 6px; cursor: pointer; }
+/* Franja de resumen debajo de la barra */
+.stats-strip { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; background: var(--surface); border-radius: 16px; padding: 10px 18px; margin-top: 12px; box-shadow: var(--shadow-sm, 0 2px 8px rgba(28,36,75,.06)); }
+.tb-bar { display: flex; width: 200px; height: 12px; border-radius: 999px; overflow: hidden; background: var(--gray-soft); flex: none; }
+.tb-bar i { min-width: 0; }
+.stats-strip ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; font-weight: 600; }
+.stats-strip li b { font-weight: 900; }
+.stats-strip small { margin-left: auto; font-size: 12px; color: var(--ink-2); }
+.tb-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+.tb-green { background: #1f9d6b; } .tb-amber { background: #f5b82e; } .tb-gray { background: #b9b3b4; } .tb-red { background: #e31b23; }
+@media (max-width: 800px) { .stats-strip small { margin-left: 0; } .tb-bar { width: 100%; } }
+
+/* Etiquetas de estado legibles dentro de "Documentos por aprobar" */
+.pending li .pill-green { color: #137a52; } .pending li .pill-amber { color: #8a6200; }
+.pending li .pill-red { color: var(--red-dark); } .pending li .pill-gray { color: #5b5455; } .pending li .pill-navy { color: var(--navy); }

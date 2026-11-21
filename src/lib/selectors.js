@@ -1,4 +1,4 @@
-import { DOC_TYPES } from './seed.js';
+import { DOC_TYPES, RECEIVED_DAYS_AGO } from './seed.js';
 
 export const DOC_LABEL = Object.fromEntries(DOC_TYPES.map((t) => [t.key, t.label]));
 
@@ -102,3 +102,8 @@ export function actionKind(action) {
 export const visibleDocs = (ds) => ds.filter((d) => d.completitud === 100);
 export const lastActivity = (c, ds) =>
   Math.max(0, c.decision ? Date.parse(c.decision.at) : 0, ...ds.map((d) => (d.review.at ? Date.parse(d.review.at) : 0)));
+
+// Filtro por días desde la recepción del caso (days = 0 → todos)
+export const DAY_OPTIONS = [{ v: 1, label: '1 día' }, { v: 3, label: '3 días' }, { v: 7, label: '7 días' }, { v: 15, label: '15 días' }, { v: 30, label: '30 días' }, { v: 0, label: 'Todos' }];
+export const DEFAULT_DAYS = 3;
+export const inDays = (c, days) => !days || (RECEIVED_DAYS_AGO[c.id] ?? 0) < days;

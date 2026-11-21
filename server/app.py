@@ -11,7 +11,6 @@ from flask import Flask, jsonify, request
 
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
-load_dotenv(ROOT / ".env.local")
 
 app = Flask(__name__)
 

@@ -45,7 +45,7 @@ function GoogleButton({ onError }) {
 
   if (!GOOGLE_CLIENT_ID) {
     return (
-      <button type="button" className="btn btn-ghost" disabled title="Define VITE_GOOGLE_CLIENT_ID en .env.local">
+      <button type="button" className="btn btn-ghost" disabled title="Define VITE_GOOGLE_CLIENT_ID en .env">
         Continuar con Google (sin configurar)
       </button>
     );
