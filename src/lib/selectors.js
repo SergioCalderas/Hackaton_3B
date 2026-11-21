@@ -27,11 +27,12 @@ export function caseStatus(c, ds) {
 }
 
 export const approvedCount = (ds) => ds.filter((d) => d.review.status === 'aprobado').length;
-export const reviewProgress = (ds) => Math.round((approvedCount(ds) / (ds.length || 1)) * 100);
+export const TOTAL_DOCS = DOC_TYPES.length;
+export const reviewProgress = (ds) => Math.round((approvedCount(ds) / TOTAL_DOCS) * 100);
 export const completeness = (ds) => Math.round(ds.reduce((a, d) => a + d.completitud, 0) / (ds.length || 1));
 
 export const canAcceptCase = (ds) =>
-  ds.length > 0 && ds.every((d) => d.completitud === 100 && d.review.status === 'aprobado');
+  ds.length === TOTAL_DOCS && ds.every((d) => d.completitud === 100 && d.review.status === 'aprobado');
 
 export function docKpis(docs) {
   const k = { aprobado: 0, en_revision: 0, rechazado: 0, sin_revisar: 0, faltante: 0, total: docs.length };
@@ -96,3 +97,8 @@ export function actionKind(action) {
   if (action.startsWith('Rechazó')) return 'rechazo';
   return 'abrio';
 }
+
+// El sistema no muestra documentos faltantes/incompletos al gestor
+export const visibleDocs = (ds) => ds.filter((d) => d.completitud === 100);
+export const lastActivity = (c, ds) =>
+  Math.max(0, c.decision ? Date.parse(c.decision.at) : 0, ...ds.map((d) => (d.review.at ? Date.parse(d.review.at) : 0)));

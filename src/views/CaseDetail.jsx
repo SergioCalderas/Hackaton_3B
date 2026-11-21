@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useStore } from '../store.jsx';
-import { Card, Dot, MapCard, Pill, Progress, ReasonModal } from '../components/ui.jsx';
+import { Card, Dot, MapCard, Pill, ReasonModal, Steps } from '../components/ui.jsx';
 import DocModal from '../components/DocModal.jsx';
 import { CHECKS, DOC_TYPES } from '../lib/seed.js';
-import { approvedCount, canAcceptCase, caseStatus, completeness, docSemaphore, docState, docsOf, fmtDate, fmtVigencia, reviewProgress, vigenciaVencida } from '../lib/selectors.js';
+import { TOTAL_DOCS, approvedCount, canAcceptCase, caseStatus, docSemaphore, docState, docsOf, fmtDate, fmtVigencia, vigenciaVencida } from '../lib/selectors.js';
 
 export default function CaseDetail({ caseId, onBack }) {
   const { state, dispatch } = useStore();
@@ -35,10 +35,7 @@ export default function CaseDetail({ caseId, onBack }) {
           </div>
           <Pill status={status} />
         </div>
-        <div className="two-bars">
-          <Progress label={`Avance de revisión · ${approvedCount(ds)} de ${ds.length} aprobados`} value={reviewProgress(ds)} tone="green" />
-          <Progress label="Completitud documental" value={completeness(ds)} />
-        </div>
+        <Steps label="Avance de revisión (documentos aprobados)" done={approvedCount(ds)} total={TOTAL_DOCS} />
       </Card>
 
       <div className="grid">
@@ -46,6 +43,7 @@ export default function CaseDetail({ caseId, onBack }) {
           <div className="doc-list">
             {DOC_TYPES.map((t) => {
               const d = ds.find((x) => x.type === t.key);
+              if (!d || d.completitud < 100) return null; // los documentos faltantes no se muestran
               const st = docState(d);
               return (
                 <div key={d.id} className={`doc-row ${st === 'rechazado' ? 'locked' : ''}`}>
@@ -61,7 +59,7 @@ export default function CaseDetail({ caseId, onBack }) {
                   <div className="doc-sem" title={CHECKS.map((k) => `${k.label}: ${d.checks[k.key]}`).join('\n')}>
                     {CHECKS.map((k) => <Dot key={k.key} level={d.checks[k.key]} />)}
                     <span className={`sem-label sem-${docSemaphore(d)}`}>
-                      {d.completitud < 100 ? `${d.completitud}%` : docSemaphore(d) === 'ok' ? '100%' : '100% · revisar'}
+                      {docSemaphore(d) === 'ok' ? 'Sin diferencias' : 'Revisar'}
                     </span>
                   </div>
                   <Pill status={st} />

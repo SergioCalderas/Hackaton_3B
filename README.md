@@ -16,9 +16,23 @@ Frontend en React + Vite para evaluar la prefactibilidad de casos de expansión.
    npm install
    npm run dev
    ```
-4. Abre la dirección que imprime la terminal (normalmente http://localhost:5173) e inicia sesión con una cuenta de demostración.
+4. Abre la dirección que imprime la terminal (normalmente https://localhost:5173 — usa HTTPS con certificado local autofirmado: acepta la advertencia del navegador la primera vez) e inicia sesión con una cuenta de demostración.
 
 Para generar la versión de producción: `npm run build` (queda en `dist/`).
+
+## Inicio de sesión con Google
+
+1. En Google Cloud Console crea un *ID de cliente de OAuth* (aplicación web) y agrega `https://localhost:5173` como origen JS autorizado.
+2. Copia `.env.example` a `.env.local` y completa `VITE_GOOGLE_CLIENT_ID` y `VITE_GOOGLE_ALLOWED` (correo:rol, rol = `admin` o `gestor`).
+3. Reinicia `npm run dev`. Solo entran las cuentas de la lista.
+
+> El token de Google debe verificarse también en el backend (firma, `aud`, `exp`). En el frontend solo se valida emisor, audiencia, expiración, nonce y correo verificado.
+
+## Seguridad
+
+- **En tránsito:** HTTPS forzado (servidor de desarrollo solo HTTPS, redirección http→https fuera de localhost, `upgrade-insecure-requests` y CSP en el build, cabeceras de seguridad). En producción, configurar HSTS en el hosting (ver `public/_headers`).
+- **En reposo:** los datos guardados en el navegador se cifran con AES-GCM (Web Crypto); la clave es no extraíble y vive en IndexedDB. Las contraseñas demo solo existen como hash. La base de datos ya guarda datos hasheados (fuera de este alcance).
+- **En uso:** la sesión no se persiste, se cierra tras 10 min de inactividad, no hay contraseñas en memoria del estado y el contenido se renderiza escapado (React) con CSP restrictiva.
 
 ## Cuentas de demostración (contraseña `3b123`)
 

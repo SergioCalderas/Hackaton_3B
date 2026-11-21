@@ -7,6 +7,8 @@ import Cases from './views/Cases.jsx';
 import CaseDetail from './views/CaseDetail.jsx';
 import { AdminHistory, AdminSummary } from './views/Admin.jsx';
 
+const IDLE_MS = 10 * 60 * 1000;
+
 const GESTOR_TABS = [
   { key: 'inicio', label: 'Dashboard' },
   { key: 'casos', label: 'Casos' },
@@ -25,6 +27,18 @@ export default function App() {
   useEffect(() => {
     if (user) { setTab(user.role === 'admin' ? 'resumen' : 'inicio'); setCaseId(null); }
   }, [user && user.id]);
+
+  // Datos en uso: cierre de sesión automático tras 10 min sin actividad
+  const uid = user && user.id;
+  useEffect(() => {
+    if (!uid) return undefined;
+    let t;
+    const reset = () => { clearTimeout(t); t = setTimeout(() => dispatch({ type: 'LOGOUT' }), IDLE_MS); };
+    const evs = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    evs.forEach((e) => window.addEventListener(e, reset));
+    reset();
+    return () => { clearTimeout(t); evs.forEach((e) => window.removeEventListener(e, reset)); };
+  }, [uid, dispatch]);
 
   if (!user) return <Login />;
 

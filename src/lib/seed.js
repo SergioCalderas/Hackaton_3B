@@ -16,9 +16,9 @@ export const CHECKS = [
 ];
 
 export const USERS = [
-  { id: 'u1', name: 'Mariana Torres', email: 'gestor@3b.mx', password: '3b123', role: 'gestor' },
-  { id: 'u2', name: 'Luis Hernández', email: 'gestor2@3b.mx', password: '3b123', role: 'gestor' },
-  { id: 'u3', name: 'Paola Ríos', email: 'admin@3b.mx', password: '3b123', role: 'admin' },
+  { id: 'u1', name: 'Mariana Torres', email: 'gestor@3b.mx', hash: '806e9e693613dc63e3abfa6290cd7e9ec4db15fb6e6c6443cda4dd5c74a34faf', role: 'gestor' },
+  { id: 'u2', name: 'Luis Hernández', email: 'gestor2@3b.mx', hash: '806e9e693613dc63e3abfa6290cd7e9ec4db15fb6e6c6443cda4dd5c74a34faf', role: 'gestor' },
+  { id: 'u3', name: 'Paola Ríos', email: 'admin@3b.mx', hash: '806e9e693613dc63e3abfa6290cd7e9ec4db15fb6e6c6443cda4dd5c74a34faf', role: 'admin' },
 ];
 
 const NO_PDF = new Set(['c5-uso_suelo']);
