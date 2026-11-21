@@ -47,6 +47,26 @@ Abre **http://localhost:8000/docs**: Swagger UI permite subir archivos sin escri
 - **Parámetro `modo`** en ambos endpoints: `completo` (default, con texto) o `compacto` (sin
   texto, ideal para el LLM). La primera petición tarda unos segundos más porque se carga el motor.
 
+### Demo visual
+
+```powershell
+.venv\Scripts\uvicorn api:app --port 8000
+```
+
+Abre **http://localhost:8000/demo**. Es una sola página (`demo/index.html`, sin dependencias
+ni CDNs) que usa los mismos endpoints:
+
+- **Documento:** arrastra un PDF, JPG o PNG, elige el tipo declarado y presiona "Procesar".
+  Muestra el estado, la calidad del texto, el motor por página, el tipo declarado contra el
+  detectado, la tabla de campos con el valor resaltado dentro de su evidencia, el texto por
+  página (plegable y copiable) y el JSON crudo.
+- **Expediente:** un archivo por tipo y el modo compacto o completo. Muestra el puntaje, el
+  nivel, los campos que coinciden y la tabla comparativa de los que no coinciden (una columna
+  por documento, con página y evidencia), los faltantes, las alertas y un **semáforo
+  provisional, solo de prueba**, calculado en la página.
+- **Para la demo**, usa la variante `v` de los 4 documentos sintéticos: debe verse en rojo, con
+  4 discrepancias (clave catastral, propietario, número oficial y superficie), en unos 20 s.
+
 **3. Estructura del JSON** (contrato Pydantic en `ocr_pipeline/schemas.py`, JSON Schema en
 `schemas/`, ejemplos reales sintéticos en `examples/`):
 

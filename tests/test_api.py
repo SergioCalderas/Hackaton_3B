@@ -52,6 +52,14 @@ def test_expediente(cliente):
     assert cliente.llamadas["verificar"] == (2, "completo")
 
 
+def test_demo_html(cliente):
+    r = cliente.get("/demo")
+    assert r.status_code == 200 and r.headers["content-type"].startswith("text/html")
+    html = r.text
+    assert "/documento" in html and "/expediente" in html
+    assert "<script src" not in html and "<link" not in html  # sin dependencias ni CDNs externos
+
+
 def test_errores(cliente):
     r = cliente.post("/documento", files={"archivo": ("x.docx", b"hola", "application/octet-stream")})
     assert r.status_code == 415

@@ -2,6 +2,7 @@
 
     uvicorn api:app --host 127.0.0.1 --port 8000
     # Documentación interactiva: http://127.0.0.1:8000/docs
+    # Demo visual:                http://127.0.0.1:8000/demo
 
 POST /documento[?modo=compacto]   multipart: archivo=<file>, tipo_declarado=<Predial|Alineamiento|Escritura|UsoDeSuelo> (opcional)
 POST /expediente[?modo=compacto]  multipart: archivos=<file> (varios), tipos=<tipo> (opcional, uno por archivo, mismo orden)
@@ -17,6 +18,7 @@ from pathlib import Path
 from typing import Literal, Optional
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi.responses import FileResponse
 
 from ocr_pipeline.config import SUPPORTED_EXTENSIONS
 from ocr_pipeline.schemas import VERSION_ESQUEMA, Documento, Expediente
@@ -42,6 +44,17 @@ def _guardar(upload: UploadFile, carpeta: Path, i: int = 0) -> tuple[Path, str]:
     with open(destino, "wb") as f:
         shutil.copyfileobj(upload.file, f)
     return destino, nombre
+
+
+DEMO_HTML = Path(__file__).resolve().parent / "demo" / "index.html"
+
+
+@app.get("/demo", include_in_schema=False)
+def demo():
+    """Página de prueba visual (HTML + CSS + JS en un solo archivo, sin dependencias)."""
+    if not DEMO_HTML.is_file():
+        raise HTTPException(404, "No se encontró demo/index.html")
+    return FileResponse(DEMO_HTML, media_type="text/html; charset=utf-8")
 
 
 @app.get("/salud")
