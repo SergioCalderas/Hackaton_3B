@@ -9,8 +9,10 @@ export default function Dashboard({ user, onOpenCase, onNav }) {
   const dk = docKpis(docs);
   // Los documentos faltantes no se muestran: solo los completos, pendientes de aprobar
   const pending = docs.filter((d) => ['sin_revisar', 'en_revision'].includes(docState(d)));
-  const [selId, setSelId] = useState(null);
-  const selected = cases.find((c) => c.id === selId) || (pending[0] && cases.find((c) => c.id === pending[0].caseId)) || cases[0];
+  // Se selecciona un solo documento; el mapa muestra la ubicación (lat/lng) que trae la BD para su caso/propuesta de unidad
+  const [selDocId, setSelDocId] = useState(null);
+  const selDoc = pending.find((d) => d.id === selDocId) || pending[0];
+  const selected = cases.find((c) => c.id === (selDoc && selDoc.caseId)) || cases[0];
 
   // Últimos 8 casos con actividad más reciente
   const recent = cases
@@ -58,7 +60,7 @@ export default function Dashboard({ user, onOpenCase, onNav }) {
           {pending.slice(0, 8).map((d) => {
             const c = cases.find((x) => x.id === d.caseId);
             return (
-              <li key={d.id} className={`sel ${selected && selected.id === c.id ? 'sel-on' : ''}`} onClick={() => setSelId(c.id)}>
+              <li key={d.id} className={`sel ${selDoc && selDoc.id === d.id ? 'sel-on' : ''}`} onClick={() => setSelDocId(d.id)}>
                 <div>
                   <strong>{DOC_LABEL[d.type]}</strong>
                   <span>{c.name}</span>
