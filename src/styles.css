@@ -347,3 +347,14 @@ body::before { content: ''; position: fixed; top: 0; left: 0; right: 0; height: 
 .tile-gray { background: linear-gradient(135deg, #f5f1f1, #e9e3e3); }
 .tile-navy { background: linear-gradient(135deg, #ecedf7, #d9dcef); }
 .code { background: linear-gradient(135deg, #eceef8, #d9dcef); }
+
+/* Gallo BBB en el login (solo el gallo, discreto) */
+.rooster { position: relative; width: 150px; margin-top: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.rooster:focus-visible { outline: 3px dashed var(--navy, #1c244b); outline-offset: 6px; border-radius: 16px; }
+.rooster-body { transform-origin: 50% 100%; }
+.rooster-body img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
+.rooster-shadow { position: absolute; left: 14%; right: 14%; bottom: -6px; height: 12px; border-radius: 50%; background: rgba(0,0,0,.14); z-index: -1; }
+.rooster-bubble { position: absolute; left: 100%; top: 4px; margin-left: 6px; white-space: nowrap; transform-origin: 0 100%;
+  background: #fff; color: #1c244b; font-weight: 800; font-size: 14px; padding: 6px 12px; border-radius: 16px 16px 16px 4px;
+  box-shadow: 0 4px 14px rgba(28,36,75,.14); }
+@media (max-width: 800px) { .rooster { width: 96px; } }

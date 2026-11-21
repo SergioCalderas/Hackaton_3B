@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store.jsx';
+import Rooster from '../components/Rooster.jsx';
 import logo from '../assets/images/logo-3b.png';
 import { hashPassword } from '../lib/secure.js';
 import { GOOGLE_CLIENT_ID, loadGoogle, newNonce, userFromCredential } from '../lib/auth.js';
@@ -86,6 +87,7 @@ export default function Login() {
         <img className="logo-big" src={logo} alt="3B" />
         <h1>Prefactibilidad de expansión</h1>
         <p className="slogan">Bueno, bonito y barato.</p>
+        <Rooster />
       </div>
       <form className="login-card card" onSubmit={submit}>
         <h2>Iniciar sesión</h2>
