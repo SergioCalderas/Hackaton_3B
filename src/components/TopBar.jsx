@@ -1,11 +1,12 @@
 import React from 'react';
+import logo from '../assets/images/logo-3b.png';
 
 export default function TopBar({ user, tabs, current, onNav, onLogout }) {
   const initials = user.name.split(' ').map((p) => p[0]).slice(0, 2).join('');
   return (
     <header className="topbar">
       <div className="brand">
-        <span className="brand-mark">3B</span>
+        <img className="logo" src={logo} alt="3B" />
         <span className="brand-text">Prefactibilidad</span>
       </div>
       <nav className="tabs">

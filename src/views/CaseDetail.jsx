@@ -3,7 +3,7 @@ import { useStore } from '../store.jsx';
 import { Card, Dot, MapCard, Pill, Progress, ReasonModal } from '../components/ui.jsx';
 import DocModal from '../components/DocModal.jsx';
 import { CHECKS, DOC_TYPES } from '../lib/seed.js';
-import { approvedCount, canAcceptCase, caseStatus, completeness, docSemaphore, docState, docsOf, fmtDate, reviewProgress } from '../lib/selectors.js';
+import { approvedCount, canAcceptCase, caseStatus, completeness, docSemaphore, docState, docsOf, fmtDate, fmtVigencia, reviewProgress, vigenciaVencida } from '../lib/selectors.js';
 
 export default function CaseDetail({ caseId, onBack }) {
   const { state, dispatch } = useStore();
@@ -52,6 +52,11 @@ export default function CaseDetail({ caseId, onBack }) {
                   <div className="doc-main">
                     <strong>{t.label}</strong>
                     <span className="muted small">{d.file} · v{d.versions[d.versions.length - 1].v}</span>
+                    {d.vigencia && (
+                      <span className={`vig ${vigenciaVencida(d.vigencia) ? 'vig-off' : 'vig-on'}`}>
+                        Vigencia: {fmtVigencia(d.vigencia)} · {vigenciaVencida(d.vigencia) ? 'Vencida' : 'Vigente'}
+                      </span>
+                    )}
                   </div>
                   <div className="doc-sem" title={CHECKS.map((k) => `${k.label}: ${d.checks[k.key]}`).join('\n')}>
                     {CHECKS.map((k) => <Dot key={k.key} level={d.checks[k.key]} />)}

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store.jsx';
+import logo from '../assets/images/logo-3b.png';
 
 export default function Login() {
   const { state, dispatch } = useStore();
@@ -14,12 +15,10 @@ export default function Login() {
     dispatch({ type: 'LOGIN', userId: u.id });
   };
 
-  const demo = (u) => { setEmail(u.email); setPassword(u.password); setError(''); };
-
   return (
     <div className="login">
       <div className="login-side">
-        <span className="brand-mark big">3B</span>
+        <img className="logo-big" src={logo} alt="3B" />
         <h1>Prefactibilidad de expansión</h1>
         <p>Revisa la documentación de cada caso, valida su congruencia y decide la prefactibilidad.</p>
       </div>
@@ -35,16 +34,6 @@ export default function Login() {
         </label>
         {error && <p className="error">{error}</p>}
         <button className="btn btn-red" type="submit">Entrar</button>
-        <div className="demo">
-          <span className="muted small">Cuentas de demostración (contraseña 3b123):</span>
-          <div className="row wrap">
-            {state.users.map((u) => (
-              <button type="button" key={u.id} className="chip" onClick={() => demo(u)}>
-                {u.role === 'admin' ? 'Admin' : u.name.split(' ')[0]}
-              </button>
-            ))}
-          </div>
-        </div>
       </form>
     </div>
   );
