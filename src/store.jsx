@@ -27,8 +27,14 @@ const caseName = (s, id) => s.cases.find((c) => c.id === id).name;
 function reducer(s, a) {
   const now = new Date().toISOString();
   switch (a.type) {
-    case 'LOGIN':
-      return { ...s, session: a.userId };
+    case 'LOGIN': {
+      const user = { ...a.user };
+      delete user.password;
+      const users = s.users.some((u) => String(u.id) === String(user.id))
+        ? s.users.map((u) => (String(u.id) === String(user.id) ? user : u))
+        : [...s.users, user];
+      return { ...s, session: user.id, users };
+    }
     case 'LOGOUT':
       return { ...s, session: null };
     case 'RESET':
