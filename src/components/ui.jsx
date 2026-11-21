@@ -6,7 +6,7 @@ export const Pill = ({ status }) => <span className={`pill pill-${STATUS_TONE[st
 
 export const Dot = ({ level, title }) => <span className={`dot dot-${level}`} title={title} />;
 
-export function Progress({ value, label, tone = 'red' }) {
+export function Progress({ value, label, tone = 'green' }) {
   return (
     <div className="progress-wrap">
       {label && (
