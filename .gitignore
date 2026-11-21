@@ -1,0 +1,6 @@
+.venv/
+output/
+comparison/
+tessdata/
+__pycache__/
+*.pyc

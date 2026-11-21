@@ -1,0 +1,24 @@
+# Probado en Windows 11, Python 3.11 (64-bit), solo CPU.
+# Instalar dentro de un venv:  py -3.11 -m venv .venv  &&  .venv\Scripts\pip install -r requirements.txt
+
+# --- OCR principal (PaddleOCR 3.0.x en CPU) ---
+# paddleocr y paddlex deben ser de la MISMA serie: paddlex 3.1+ rompe paddleocr 3.0.3
+# (TypeError: PaddlePredictorOption.__init__() takes 1 positional argument).
+paddlepaddle==3.0.0
+paddleocr==3.0.3
+paddlex[ocr]==3.0.3
+
+# --- PDFs, imágenes y preprocesamiento ---
+PyMuPDF==1.26.3
+# paddlex ya instala opencv-contrib-python; no instalar además opencv-python
+# (ambos comparten la carpeta cv2 y se pisan).
+opencv-contrib-python==4.10.0.84
+numpy==2.3.5
+pillow==12.1.0
+
+# --- OCR alternativo (requiere el binario de Tesseract, ver README) ---
+pytesseract==0.3.13
+
+# --- Utilidades ---
+tqdm==4.67.1
+openpyxl==3.1.5
