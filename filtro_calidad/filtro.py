@@ -220,6 +220,23 @@ def analizar_pagina(pg: pymupdf.Page, numero: int, cache: dict) -> Pagina:
     return p
 
 
+def leer_documento(ruta: Path, dir_cache: Path, paginas: list[int] | None = None) -> list[Pagina]:
+    """Texto y líneas OCR (con cajas) de las páginas pedidas (todas por omisión).
+    Reutiliza la caché del filtro: las páginas que ya se leyeron no se vuelven a procesar.
+    Pensado para la siguiente etapa (extracción + evidencia con coordenadas)."""
+    dir_cache.mkdir(parents=True, exist_ok=True)
+    f_cache = dir_cache / f"{sha256(ruta)[:16]}.json"
+    cache = json.loads(f_cache.read_text("utf-8")) if f_cache.exists() else {}
+    doc = abrir(ruta)
+    try:
+        idx = range(doc.page_count) if paginas is None else [i for i in paginas if 0 <= i < doc.page_count]
+        salida = [analizar_pagina(doc[i], i, cache) for i in idx]
+    finally:
+        doc.close()
+    f_cache.write_text(json.dumps(cache, ensure_ascii=False), "utf-8")
+    return salida
+
+
 # ==========================================================================
 # Clasificación del tipo de documento
 # ==========================================================================

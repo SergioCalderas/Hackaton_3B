@@ -105,3 +105,10 @@ Una operación junta un documento de cada tabla. Cada documento solo puede usars
 | `latitud` | `numeric(9,6)` | De `-90` a `90` |
 | `longitud` | `numeric(9,6)` | De `-180` a `180` |
 | `estado` | `smallint` | `1`, `2` o `3` |
+
+## Pipeline de documentos (filtro de calidad)
+
+El backend (`server/app.py`) registra el pipeline de `procesamiento/`. Toma los documentos de la base
+de datos (no del front) y responde si cada uno está `APROBADO`, en `REVISION_MANUAL` o hay que
+`VOLVER_A_SUBIR`, con el motivo. Endpoints, variables de entorno y diseño en [`CLAUDE.md`](CLAUDE.md);
+detalle del filtro en [`filtro_calidad/README.md`](filtro_calidad/README.md).

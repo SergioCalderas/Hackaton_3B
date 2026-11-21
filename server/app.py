@@ -10,6 +10,17 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 app = Flask(__name__)
 
+# Pipeline de documentos (Fase 1: filtro de calidad). Ver procesamiento/api.py y CLAUDE.md.
+import sys  # noqa: E402
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+try:
+    from procesamiento.api import bp as procesamiento_bp  # noqa: E402
+
+    app.register_blueprint(procesamiento_bp)
+except ImportError as e:  # faltan dependencias del OCR: el login sigue funcionando
+    print(f"[server] Pipeline de documentos deshabilitado: {e}", flush=True)
+
 
 def role_name(tipo_usuario):
     return "admin" if tipo_usuario == 1 else "gestor"
