@@ -131,6 +131,8 @@ Variables del servidor para el pipeline:
 | POST | `/api/dictamen` | igual, con documentos elegidos `{escrituras, predial, suelo, aliniamiento}: id` |
 | POST | `/api/operaciones/<id>/verificar` | los 4 documentos de `operacion_realizada` + completitud RF-01 (`EN_REVISION` / `NO_VALIDADO`) |
 | POST | `/api/documentos/verificar-archivo` | multipart `archivo` (+ `tipo`), solo para pruebas |
+| GET | `/api/texto?ruta=/docs/<tipo>/caso-00N.pdf` | texto extraído por página de un PDF de `public/` (vista del caso). `?tipo=` para resaltar campos, `?solo_cache=1` no corre OCR (responde `SIN_EXTRAER`) |
+| GET | `/api/documentos/<tabla>/<id>/texto` | igual, para un documento de la BD |
 
 `?hasta=calidad` corre solo la Fase 1 (sin él corren Fase 1 + Fase 2; el botón *Verificar* de
 `Filtro.jsx` ya corre ambas). Respuesta: `{nombre, tabla, id, tipo_declarado, etapas, version_reglas, calidad: {...}, extraccion: {...}}`.
@@ -153,7 +155,13 @@ Tablas válidas: `escrituras | predial | suelo | aliniamiento` (lista blanca, si
 - Tipos front → tablas: `escrituras→escrituras`, `predial→predial`, `uso_suelo→suelo`,
   `alineamiento→aliniamiento`, `numero_oficial→aliniamiento` (la BD los junta).
 - El resto del front (revisión del gestor, semáforos de validación, historial) sigue usando
-  `src/lib/seed.js` + localStorage.
+  `src/lib/seed.js` + localStorage. **Las "Validaciones" del `DocModal` son datos demo de `seed.js`.**
+- **"Texto extraído del documento"** (`src/components/TextoExtraido.jsx`, en `DocModal.jsx` debajo de
+  Aceptar/Denegar): consulta `GET /api/texto?ruta=<d.pdf>&tipo=<d.type>&solo_cache=1` (instantáneo); si no
+  hay texto, el botón *Verificar* lo extrae con OCR. Muestra motor, calidad y páginas, selector de página,
+  extracto de 1,800 caracteres con *Ver todo*, valores de los campos resaltados y *Copiar texto*.
+  Como hoy no hay operaciones, se enlaza por el PDF que muestra el caso (los 39 de `public/docs/` son copias
+  idénticas de documentos del reto, así que comparten caché con los de la BD por SHA-256).
 
 ### Observaciones y dictamen (última etapa)
 
@@ -225,6 +233,13 @@ Implementadas como **adaptadores delgados** sobre `ocr_pipeline/` (toda la lógi
 - Pendiente: reutilizar el texto de RapidOCR de la Fase 1 (`leer_paginas`) para evitar el doble OCR; las
   reglas están calibradas con Tesseract y habría que re-validarlas.
 
+**Texto extraído** (`procesamiento/texto.py`): el texto completo por página **no va a la BD**. Vive en una
+caché en disco por SHA-256 (`procesamiento/_trabajo/.cache_texto/`, ignorada por git) que llenan la Fase 2
+al extraer, los endpoints `/texto` bajo demanda, o el precalentado antes de una demo:
+`python -m procesamiento.texto --precalentar` (los 39 PDFs de `public/docs/`; los documentos largos tardan
+~2 min, p. ej. la escritura de Tepeji, 25 págs: 116 s). Los campos a resaltar se recalculan del texto en
+caché en cada consulta (sin OCR).
+
 **Validación cruzada** (`procesamiento/etapa_verificacion.py`): es por expediente, no por documento. La llama
 `observaciones.de_operacion()` con los `documento` guardados de los APROBADOS y usa
 `ocr_pipeline.servicio.verificar_expediente` (rapidfuzz, tolera errores de OCR). Regla de severidad:
@@ -264,6 +279,9 @@ python server/app.py                               # http://127.0.0.1:5000
 
 # Pruebas (sin OCR ni BD)
 python -m pytest
+
+# Antes de una demo: texto de los 39 PDFs de los casos en caché (con el venv del servidor)
+python -m procesamiento.texto --precalentar
 
 # Filtro por lotes sobre una carpeta (subcarpeta = tipo declarado)
 python filtro_calidad/filtro.py <carpeta> --salida <carpeta_salida>

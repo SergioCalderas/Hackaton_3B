@@ -124,6 +124,11 @@ La lógica vive en [`ocr_pipeline/`](ocr_pipeline/README.md); `procesamiento/eta
 - **En el front:** pestaña *Filtro de documentos* → *Verificar* (ahora corre Fase 1 + Fase 2) → *Usar en
   dictamen* en un documento de cada tipo → *Generar dictamen*. Las observaciones `VC-xx` muestran el valor
   de cada documento.
+- **Texto extraído en la vista del caso:** al abrir un documento de un caso, debajo de Aceptar/Denegar
+  aparece *Texto extraído del documento*, con motor, calidad, páginas, valores resaltados y *Copiar texto*.
+  Si el documento aún no tiene texto, *Verificar* lo extrae. El endpoint es `GET /api/texto?ruta=…`, y el
+  texto se guarda en una caché en disco por SHA-256, no en la BD. Antes de una demo, precalienta los 39 PDF
+  de los casos con `python -m procesamiento.texto --precalentar`.
 - **Pruebas:** `python -m pytest`, sin OCR ni BD.
 - **Modo independiente** (batch, API FastAPI con `/docs` y la página de prueba `/demo`): ver
   [`ocr_pipeline/README.md`](ocr_pipeline/README.md).

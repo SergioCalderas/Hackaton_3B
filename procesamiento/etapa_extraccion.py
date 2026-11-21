@@ -12,6 +12,8 @@ Salida (ResultadoEtapa.datos):
   documento         Documento de ocr_pipeline en modo compacto (sin texto completo): lo usa la
                     validación cruzada (etapa_verificacion.py) y queda guardado en
                     filtro_resultados.detalle -> 'extraccion' -> 'documento'
+El texto completo por página NO va a la BD: se guarda en la caché en disco de texto.py
+(la usa la sección "Texto extraído del documento" del caso).
   calidad_texto, version_esquema, segundos, mensaje
 """
 from __future__ import annotations
@@ -52,9 +54,13 @@ def _campo_equipo(c: dict, calidad: float | None) -> dict:
 
 
 def ejecutar(doc):
+    import hashlib
+
+    from ocr_pipeline.matching import aplicar_modo
     from ocr_pipeline.schemas import VERSION_ESQUEMA
     from ocr_pipeline.servicio import procesar_documento
 
+    from . import texto
     from .pipeline import CANDADO_OCR, ResultadoEtapa
 
     t0 = time.time()
@@ -62,7 +68,14 @@ def ejecutar(doc):
     tipo = doc.tipo_declarado or calidad.get("tipo_detectado")
     try:
         with CANDADO_OCR:  # una etapa con OCR a la vez (convención del pipeline)
-            d = procesar_documento(doc.ruta, TIPO_OCR.get(tipo), nombre_original=nombre_trazable(doc), modo="compacto")
+            completo = procesar_documento(doc.ruta, TIPO_OCR.get(tipo), nombre_original=nombre_trazable(doc),
+                                          modo="completo")
+        # El texto por página va a la caché en disco (texto.py), no a la BD; a la BD va el modo compacto.
+        try:
+            texto.guardar_cache(hashlib.sha256(Path(doc.ruta).read_bytes()).hexdigest(), completo)
+        except OSError as e:
+            print(f"[procesamiento] No se guardó la caché de texto: {e}", flush=True)
+        d = aplicar_modo(completo, "compacto", es_expediente=False)
     except Exception as e:  # noqa: BLE001 — un fallo aquí no debe tumbar el servidor
         return ResultadoEtapa(datos={"estado": "ERROR", "tipo": tipo, "campos": {}, "documento": None,
                                      "mensaje": f"No se pudo extraer: {e.__class__.__name__}: {e}",

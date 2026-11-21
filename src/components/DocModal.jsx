@@ -4,6 +4,7 @@ import { Dot, Pill, Progress } from './ui.jsx';
 import { CHECKS } from '../lib/seed.js';
 import { DOC_LABEL, docSemaphore, docState, fmtDate, fmtVigencia, vigenciaVencida } from '../lib/selectors.js';
 import { FiltroPill, useFiltro } from '../lib/filtro.jsx';
+import TextoExtraido from './TextoExtraido.jsx';
 
 function FiltroDoc({ caseId, tipo }) {
   const d = useFiltro(caseId).docDe(tipo);
@@ -133,6 +134,8 @@ export default function DocModal({ docId, onClose }) {
             {(locked || incomplete || closedCase) && (
               <div className="row end"><button className="btn btn-ghost" onClick={onClose}>Cerrar</button></div>
             )}
+
+            <TextoExtraido ruta={d.pdf} tipo={d.type} />
           </div>
 
           <div className="doc-view">

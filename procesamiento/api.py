@@ -10,6 +10,9 @@
   POST /api/documentos/<tabla>/<id>/verificar        tabla: escrituras | predial | suelo | aliniamiento
   POST /api/operaciones/<id>/verificar               los 4 documentos de operacion_realizada + completitud
   POST /api/documentos/verificar-archivo             multipart (campo "archivo", opcional "tipo"); solo pruebas
+  GET  /api/texto?ruta=/docs/<tipo>/caso-00N.pdf     texto extraído por página de un PDF de public/ (vista del caso)
+  GET  /api/documentos/<tabla>/<id>/texto            igual, para un documento de la BD
+       ambos: ?tipo=<tipo> para resaltar campos, ?solo_cache=1 para no correr OCR (devuelve SIN_EXTRAER)
 
 Parámetro opcional ?hasta=calidad para correr solo la Fase 1.
 """
@@ -17,7 +20,7 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify, request
 
-from . import dictamen, fuentes, observaciones
+from . import dictamen, fuentes, observaciones, texto
 from .etapa_calidad import TIPOS, VERSION_REGLAS
 from .pipeline import ETAPAS, procesar_bytes
 
@@ -146,6 +149,35 @@ def dictamen_seleccion():
             return jsonify(error=f"Id no válido para {tabla}."), 400
     op = fuentes.resumen_seleccion(ids)
     return jsonify(dictamen.dictaminar(op, observaciones.de_operacion(op)))
+
+
+@bp.errorhandler(texto.TextoError)
+def _error_texto(e: texto.TextoError):
+    return jsonify(error=str(e)), e.http
+
+
+def _texto(fn, *args):
+    """Texto extraído (caché por SHA-256 o OCR bajo demanda). Ver procesamiento/texto.py."""
+    tipo = request.args.get("tipo") or None
+    generar = request.args.get("solo_cache") != "1"
+    try:
+        return jsonify(fn(*args, tipo=tipo, generar=generar))
+    except (texto.TextoError, fuentes.FuenteError):
+        raise
+    except Exception as e:  # noqa: BLE001 — OCR fallido: error claro para el front
+        return jsonify(error=f"No se pudo extraer el texto: {e.__class__.__name__}: {e}"), 500
+
+
+@bp.get("/texto")
+def texto_ruta():
+    """Texto de un PDF de public/ (los que muestra la vista del caso), p. ej. ?ruta=/docs/predial/caso-001.pdf."""
+    return _texto(texto.de_ruta_publica, request.args.get("ruta", ""))
+
+
+@bp.get("/documentos/<tabla>/<int:id_>/texto")
+def texto_documento(tabla: str, id_: int):
+    a = fuentes.desde_bd(tabla, id_)
+    return _texto(lambda tipo, generar: texto.de_bytes(a.contenido, a.nombre, tipo or a.tipo, generar))
 
 
 @bp.post("/documentos/verificar-archivo")
