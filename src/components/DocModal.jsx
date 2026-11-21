@@ -63,7 +63,7 @@ export default function DocModal({ docId, onClose }) {
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal doc-modal" onClick={(e) => e.stopPropagation()}>
         <header className="row between">
           <div>
             <h3>{DOC_LABEL[d.type]}</h3>
@@ -72,74 +72,80 @@ export default function DocModal({ docId, onClose }) {
           <Pill status={st} />
         </header>
 
-        <Progress label="Completitud del documento" value={d.completitud} tone={incomplete ? 'amber' : 'green'} />
+        <div className="doc-split">
+          <div className="doc-data">
+            <Progress label="Completitud del documento" value={d.completitud} tone={incomplete ? 'amber' : 'green'} />
 
-        <FiltroDoc caseId={d.caseId} tipo={d.type} />
+            <FiltroDoc caseId={d.caseId} tipo={d.type} />
 
-        {d.vigencia && (
-          <p className={`notice ${vigenciaVencida(d.vigencia) ? 'notice-red' : 'notice-green'}`}>
-            <strong>Vigencia del predial:</strong> hasta el {fmtVigencia(d.vigencia)} · {vigenciaVencida(d.vigencia) ? 'Vencida' : 'Vigente'}
-          </p>
-        )}
+            {d.vigencia && (
+              <p className={`notice ${vigenciaVencida(d.vigencia) ? 'notice-red' : 'notice-green'}`}>
+                <strong>Vigencia del predial:</strong> hasta el {fmtVigencia(d.vigencia)} · {vigenciaVencida(d.vigencia) ? 'Vencida' : 'Vigente'}
+              </p>
+            )}
 
-        {d.pdf ? (
-          <div className="pdf-box">
-            <iframe title={d.file} src={d.pdf} />
-            <a className="btn btn-ghost btn-sm" href={d.pdf} target="_blank" rel="noreferrer">Abrir documento en otra pestaña ↗</a>
-          </div>
-        ) : (
-          <div className="doc-preview"><span>📄</span><div><strong>Documento no cargado</strong><div className="muted small">Aún no hay archivo para visualizar.</div></div></div>
-        )}
+            <h4>Validaciones {sem !== 'ok' && <span className={`sem-label sem-${sem}`}>requiere revisión</span>}</h4>
+            <ul className="checks">
+              {CHECKS.map((k) => (
+                <li key={k.key} className={`check check-${d.checks[k.key]}`}>
+                  <Dot level={d.checks[k.key]} />
+                  <div>
+                    <strong>{k.label}</strong>
+                    <span>{d.notes[k.key]}</span>
+                  </div>
+                  <em>{SEM_TEXT[d.checks[k.key]]}</em>
+                </li>
+              ))}
+            </ul>
 
-        <h4>Validaciones {sem !== 'ok' && <span className={`sem-label sem-${sem}`}>requiere revisión</span>}</h4>
-        <ul className="checks">
-          {CHECKS.map((k) => (
-            <li key={k.key} className={`check check-${d.checks[k.key]}`}>
-              <Dot level={d.checks[k.key]} />
-              <div>
-                <strong>{k.label}</strong>
-                <span>{d.notes[k.key]}</span>
-              </div>
-              <em>{SEM_TEXT[d.checks[k.key]]}</em>
-            </li>
-          ))}
-        </ul>
+            {incomplete && !locked && (
+              <p className="notice notice-amber">Este documento está incompleto ({d.completitud}%). No puede evaluarse hasta que se cargue completo.</p>
+            )}
 
-        {incomplete && !locked && (
-          <p className="notice notice-amber">Este documento está incompleto ({d.completitud}%). No puede evaluarse hasta que se cargue completo.</p>
-        )}
+            {d.review.status === 'aprobado' && <p className="notice notice-green"><strong>Conclusión:</strong> {d.review.conclusion}<br /><span className="tiny">{userName(d.review.by)} · {fmtDate(d.review.at)}</span></p>}
+            {locked && <p className="notice notice-red"><strong>Rechazado:</strong> {d.review.reason}<br /><span className="tiny">{userName(d.review.by)} · {fmtDate(d.review.at)} · Un documento rechazado ya no puede aceptarse.</span></p>}
 
-        {d.review.status === 'aprobado' && <p className="notice notice-green"><strong>Conclusión:</strong> {d.review.conclusion}<br /><span className="tiny">{userName(d.review.by)} · {fmtDate(d.review.at)}</span></p>}
-        {locked && <p className="notice notice-red"><strong>Rechazado:</strong> {d.review.reason}<br /><span className="tiny">{userName(d.review.by)} · {fmtDate(d.review.at)} · Un documento rechazado ya no puede aceptarse.</span></p>}
-
-        {!locked && !incomplete && !closedCase && (
-          <>
-            {!mode ? (
-              <div className="row end">
-                <button className="btn btn-ghost" onClick={() => setMode('rechazar')}>Denegar (es incorrecto)</button>
-                <button className="btn btn-green" onClick={() => setMode('aprobar')} disabled={d.review.status === 'aprobado'}>
-                  Aceptar (es correcto)
-                </button>
-              </div>
-            ) : (
+            {!locked && !incomplete && !closedCase && (
               <>
-                <label className="field">
-                  <span>{mode === 'aprobar' ? 'Conclusiones' : 'Motivo del rechazo'} <em>(obligatorio)</em></span>
-                  <textarea rows={3} value={text} onChange={(e) => setText(e.target.value)} autoFocus />
-                </label>
-                <div className="row end">
-                  <button className="btn btn-ghost" onClick={() => { setMode(null); setText(''); }}>Atrás</button>
-                  <button className={`btn ${mode === 'aprobar' ? 'btn-green' : 'btn-red'}`} disabled={!ok} onClick={confirm}>
-                    {mode === 'aprobar' ? 'Confirmar aceptación' : 'Confirmar rechazo'}
-                  </button>
-                </div>
+                {!mode ? (
+                  <div className="row end">
+                    <button className="btn btn-ghost" onClick={() => setMode('rechazar')}>Denegar (es incorrecto)</button>
+                    <button className="btn btn-green" onClick={() => setMode('aprobar')} disabled={d.review.status === 'aprobado'}>
+                      Aceptar (es correcto)
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <label className="field">
+                      <span>{mode === 'aprobar' ? 'Conclusiones' : 'Motivo del rechazo'} <em>(obligatorio)</em></span>
+                      <textarea rows={3} value={text} onChange={(e) => setText(e.target.value)} autoFocus />
+                    </label>
+                    <div className="row end">
+                      <button className="btn btn-ghost" onClick={() => { setMode(null); setText(''); }}>Atrás</button>
+                      <button className={`btn ${mode === 'aprobar' ? 'btn-green' : 'btn-red'}`} disabled={!ok} onClick={confirm}>
+                        {mode === 'aprobar' ? 'Confirmar aceptación' : 'Confirmar rechazo'}
+                      </button>
+                    </div>
+                  </>
+                )}
               </>
             )}
-          </>
-        )}
-        {(locked || incomplete || closedCase) && (
-          <div className="row end"><button className="btn btn-ghost" onClick={onClose}>Cerrar</button></div>
-        )}
+            {(locked || incomplete || closedCase) && (
+              <div className="row end"><button className="btn btn-ghost" onClick={onClose}>Cerrar</button></div>
+            )}
+          </div>
+
+          <div className="doc-view">
+            {d.pdf ? (
+              <div className="pdf-box">
+                <iframe title={d.file} src={d.pdf} />
+                <a className="btn btn-ghost btn-sm" href={d.pdf} target="_blank" rel="noreferrer">Abrir documento en otra pestaña ↗</a>
+              </div>
+            ) : (
+              <div className="doc-preview"><span>📄</span><div><strong>Documento no cargado</strong><div className="muted small">Aún no hay archivo para visualizar.</div></div></div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
