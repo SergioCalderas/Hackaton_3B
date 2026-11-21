@@ -8,6 +8,7 @@ Recibes el texto OCR (puede tener errores) de un documento de tipo "{tipo}", div
 Reglas:
 - Extrae SOLO datos que aparecen en el texto. No inventes ni completes con suposiciones.
 - Copia nombres, calles y claves como aparecen; corrige solo errores evidentes de OCR (letras separadas, acentos).
+- Calle, número, colonia y municipio son los del INMUEBLE, nunca los de la oficina que expide (palacio municipal, tesorería, notaría).
 - Superficies en m2 como número decimal (245.5). Fechas en formato AAAA-MM-DD.
 - Si un dato no aparece, usa null.
 - Responde únicamente JSON compacto en una sola línea.

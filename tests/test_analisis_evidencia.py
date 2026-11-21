@@ -61,3 +61,13 @@ def test_contexto_respeta_presupuesto_y_prioriza_paginas_relevantes():
     assert len(texto) <= 6000 + 200
     texto, paginas = preparar_contexto(doc, "Escritura", 10 ** 6)
     assert paginas == list(range(1, 10))
+
+
+def test_descarta_domicilio_de_la_autoridad_emisora():
+    from analisis.agentes import _limpiar_valor, solo_calle
+
+    assert _limpiar_valor("calle", "PALACIO MUNICIPAL S/N, HIDALGO") is None
+    assert _limpiar_valor("municipio", "HIDALGO") is None
+    assert _limpiar_valor("municipio", "Tepeji del Río de Ocampo") == "Tepeji del Río de Ocampo"
+    assert solo_calle("Calle Fresno No. 28, Lote 14, Col. La Loma") == "Calle Fresno"
+    assert solo_calle("FRESNO 28") == "FRESNO"

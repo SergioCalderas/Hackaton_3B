@@ -166,7 +166,21 @@ en frío). Ese tiempo no cuenta en el minuto.
 Equipo de pruebas: i7-13700H (20 hilos), 16 GB de RAM y RTX 4060 Laptop de 8 GB. `qwen3.5:9b` Q4_K_M
 con Ollama en su configuración por defecto (una petición a la vez). OCR **en frío**, sin caché:
 
-BENCHMARK_TABLA
+| Expediente | Págs. | Estado | Esperado | Total | OCR máx. | LLM máx.* | Dictamen |
+|---|---|---|---|---|---|---|---|
+| Sintético A · coherente, uso habitacional | 6 | No cumple | No cumple ✓ | **39.7 s** | 2.6 s | 32.6 s | 4.9 s |
+| Sintético B · discrepancias | 6 | Requiere revisión | Requiere revisión ✓ | **41.6 s** | 2.8 s | 33.6 s | 5.2 s |
+| Sintético C · vencidos y afectación | 6 | Requiere revisión | Requiere revisión ✓ | **42.4 s** | 2.8 s | 34.4 s | 5.2 s |
+| Sintético D · ilegibles | 6 | Requiere revisión | Requiere revisión ✓ | **28.5 s** | 3.0 s | 20.2 s | 5.3 s |
+| Tepeji del Río 5 | 30 | Requiere revisión | — | **43.2 s** | 11.3 s | 26.4 s | 5.4 s |
+| Tultepec Insurgentes | 21 | Requiere revisión | — | **42.5 s** | 0.1 s (texto nativo) | 36.8 s | 5.5 s |
+| Melchor Ocampo III | 17 | Requiere revisión | — | **41.4 s** | 6.1 s | 30.1 s | 5.2 s |
+| Sor Juana (5 archivos) | 21 | Requiere revisión | — | **49.9 s** | 10.2 s | 34.7 s | 5.0 s |
+| Escritura de otro inmueble + Melchor Ocampo | 12 | No cumple | No cumple ✓ | **40.4 s** | 5.3 s | 30.1 s | 4.9 s |
+| Paseos de la Pradera (escritura de 50 págs.) | 58 | No cumple | No cumple ✓ | **35.9 s** | 22.0 s | 19.2 s | 5.2 s |
+
+\* Incluye la espera en la cola de Ollama: con la configuración por defecto, las 4 extracciones se
+atienden una por una. El cuello de botella es el LLM, no el OCR.
 
 Decisiones que lo hacen posible (cada una medida):
 

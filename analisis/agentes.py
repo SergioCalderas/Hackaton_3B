@@ -15,7 +15,7 @@ import time
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from ocr_pipeline.normalize import parse_date
+from ocr_pipeline.normalize import ESTADOS, norm, parse_date
 
 from . import prompts
 from .comparar import MAPA_REGLAS, coincide
@@ -56,6 +56,9 @@ def clasificar(doc: dict, aj: Ajustes) -> tuple[str | None, str]:
 # ---------------------------------------------------------------------------------------
 # Extractores
 # ---------------------------------------------------------------------------------------
+_OFICINA = re.compile(r"\b(PALACIO|PRESIDENCIA) (MUNICIPAL|MUNICIPIO|JONICIPAL)|\bTESORER|\bNOTARI|\bAYUNTAMIENTO\b")
+
+
 def solo_calle(v: str) -> str:
     """'Calle Fresno No. 28, Lote 14, Col. La Loma' -> 'Calle Fresno' ; 'FRESNO 28' -> 'FRESNO'."""
     t = re.split(r",|;|\bCOL(?:ONIA)?\b\.?|\bLOTE\b|\bLT\b\.?|\bMZ(?:A|NA)?\b\.?|\bMANZANA\b", v, maxsplit=1,
@@ -70,6 +73,10 @@ def _limpiar_valor(campo: str, v):
         v = re.sub(r"\s+", " ", v).strip(" .,;:")
         if not v or v.lower() in ("null", "none", "n/a", "no aplica", "no especificado", "desconocido"):
             return None
+        if campo in ("calle", "colonia") and _OFICINA.search(norm(v)):
+            return None          # domicilio de la autoridad emisora, no del inmueble
+        if campo == "municipio" and norm(v) in ESTADOS:
+            return None          # "HIDALGO" es el estado, no el municipio
         if campo == "calle":
             v = solo_calle(v)
         if campo.startswith("fecha") and not re.match(r"^\d{4}-\d{2}-\d{2}$", v):
@@ -126,6 +133,8 @@ def construir_campos(doc: dict, datos: dict, paginas_llm: list[int]) -> dict[str
         if campo in campos or campo not in datos:
             continue
         v = _valor_reglas(doc, campo_eq)
+        if isinstance(v, str) and campo in ("calle", "colonia", "municipio"):
+            v = _limpiar_valor(campo, v)
         if v in (None, "", []):
             continue
         if campo == "ejercicio_fiscal" and isinstance(v, list):
