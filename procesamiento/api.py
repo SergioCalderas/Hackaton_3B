@@ -1,8 +1,12 @@
 """Endpoints del pipeline. server/app.py los registra (Vite hace proxy de /api al puerto 5000).
 
   GET  /api/procesamiento/salud
+  GET  /api/documentos                               todos los documentos + resultado + observaciones (sin OCR)
   GET  /api/operaciones                              lista + último resultado guardado por documento (sin OCR)
   GET  /api/operaciones/<id>                         una operación (también responde en GET .../verificar)
+  GET  /api/operaciones/<id>/observaciones           observaciones estructuradas + semáforo determinista
+  POST /api/operaciones/<id>/dictamen                manda las observaciones al LLM (o plantilla) -> justificación
+  POST /api/dictamen                                 igual, con documentos elegidos: {escrituras, predial, suelo, aliniamiento}
   POST /api/documentos/<tabla>/<id>/verificar        tabla: escrituras | predial | suelo | aliniamiento
   POST /api/operaciones/<id>/verificar               los 4 documentos de operacion_realizada + completitud
   POST /api/documentos/verificar-archivo             multipart (campo "archivo", opcional "tipo"); solo pruebas
@@ -13,7 +17,7 @@ from __future__ import annotations
 
 from flask import Blueprint, jsonify, request
 
-from . import fuentes
+from . import dictamen, fuentes, observaciones
 from .etapa_calidad import TIPOS, VERSION_REGLAS
 from .pipeline import ETAPAS, procesar_bytes
 
@@ -72,6 +76,18 @@ def verificar_operacion(operacion_id: int):
     )
 
 
+@bp.get("/documentos")
+def listar_documentos():
+    """Todos los documentos de la BD con su último resultado y observaciones (sin OCR).
+    Sirve aunque todavía no existan operaciones que los agrupen."""
+    docs = fuentes.resumen_documentos()
+    for tabla, lista in docs.items():
+        for d in lista:
+            d["estado"] = (d["filtro"] or {}).get("estado") or ("SIN_VERIFICAR" if d["tiene_archivo"] else "SIN_ARCHIVO")
+            d["observaciones"] = observaciones.de_documento(tabla, d)
+    return jsonify(docs)
+
+
 @bp.get("/operaciones")
 def listar_operaciones():
     """Operaciones con el último resultado guardado del filtro (rápido, no corre OCR)."""
@@ -88,6 +104,48 @@ def ver_operacion(operacion_id: int):
         return jsonify(error=f"No existe la operación {operacion_id}."), 404
     return jsonify({**datos[0], "nota": "Resultado guardado. Para volver a verificar usa POST en "
                                         f"/api/operaciones/{operacion_id}/verificar."})
+
+
+def _operacion(operacion_id: int) -> dict:
+    datos = fuentes.resumen_operaciones(operacion_id)
+    if not datos:
+        raise fuentes.FuenteError(f"No existe la operación {operacion_id}.", 404)
+    return datos[0]
+
+
+@bp.get("/operaciones/<int:operacion_id>/observaciones")
+def ver_observaciones(operacion_id: int):
+    """Observaciones estructuradas + semáforo determinista (sin LLM, sin OCR)."""
+    op = _operacion(operacion_id)
+    obs = observaciones.de_operacion(op)
+    color, razon = dictamen.semaforo(op, obs)
+    return jsonify(operacion_id=operacion_id, semaforo=color, semaforo_texto=dictamen.SEMAFORO_TEXTO[color],
+                   razon_semaforo=razon, observaciones=obs)
+
+
+@bp.post("/operaciones/<int:operacion_id>/dictamen")
+def generar_dictamen(operacion_id: int):
+    """Manda las observaciones a la última etapa (LLM) para redactar la justificación."""
+    op = _operacion(operacion_id)
+    return jsonify(dictamen.dictaminar(op, observaciones.de_operacion(op)))
+
+
+@bp.post("/dictamen")
+def dictamen_seleccion():
+    """Dictamen de un expediente armado a mano: JSON {escrituras, predial, suelo, aliniamiento} -> id.
+    Sirve mientras no haya operaciones en operacion_realizada."""
+    cuerpo = request.get_json(silent=True) or {}
+    ids = {}
+    for tabla in fuentes.TABLAS:
+        v = cuerpo.get(tabla)
+        if v in (None, ""):
+            ids[tabla] = None
+        elif isinstance(v, int) or (isinstance(v, str) and v.isdigit()):
+            ids[tabla] = int(v)
+        else:
+            return jsonify(error=f"Id no válido para {tabla}."), 400
+    op = fuentes.resumen_seleccion(ids)
+    return jsonify(dictamen.dictaminar(op, observaciones.de_operacion(op)))
 
 
 @bp.post("/documentos/verificar-archivo")
