@@ -1,0 +1,499 @@
+{
+  "$defs": {
+    "CampoExtraido": {
+      "additionalProperties": false,
+      "properties": {
+        "campo": {
+          "title": "Campo",
+          "type": "string"
+        },
+        "etiqueta": {
+          "title": "Etiqueta",
+          "type": "string"
+        },
+        "valor": {
+          "title": "Valor"
+        },
+        "evidencia": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Evidencia"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "fuente": {
+          "default": "llm",
+          "enum": [
+            "llm",
+            "reglas",
+            "llm+reglas"
+          ],
+          "title": "Fuente",
+          "type": "string"
+        },
+        "valor_reglas": {
+          "default": null,
+          "description": "Valor del extractor por reglas (regex), para doble verificación",
+          "title": "Valor Reglas"
+        },
+        "coincide_reglas": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "LLM y reglas coinciden (None si solo hay uno)",
+          "title": "Coincide Reglas"
+        }
+      },
+      "required": [
+        "campo",
+        "etiqueta",
+        "valor"
+      ],
+      "title": "CampoExtraido",
+      "type": "object"
+    },
+    "DocumentoAnalizado": {
+      "additionalProperties": false,
+      "properties": {
+        "nombre_archivo": {
+          "title": "Nombre Archivo",
+          "type": "string"
+        },
+        "ruta_archivo": {
+          "title": "Ruta Archivo",
+          "type": "string"
+        },
+        "tipo": {
+          "anyOf": [
+            {
+              "enum": [
+                "Escritura",
+                "Predial",
+                "Alineamiento",
+                "UsoDeSuelo"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tipo"
+        },
+        "tipo_declarado": {
+          "anyOf": [
+            {
+              "enum": [
+                "Escritura",
+                "Predial",
+                "Alineamiento",
+                "UsoDeSuelo"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tipo Declarado"
+        },
+        "tipo_detectado": {
+          "anyOf": [
+            {
+              "enum": [
+                "Escritura",
+                "Predial",
+                "Alineamiento",
+                "UsoDeSuelo"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tipo Detectado"
+        },
+        "num_paginas": {
+          "default": 0,
+          "title": "Num Paginas",
+          "type": "integer"
+        },
+        "calidad_texto": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Calidad Texto"
+        },
+        "estado_ocr": {
+          "default": "ok",
+          "title": "Estado Ocr",
+          "type": "string"
+        },
+        "paginas_enviadas_llm": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Paginas Enviadas Llm",
+          "type": "array"
+        },
+        "campos": {
+          "additionalProperties": {
+            "$ref": "#/$defs/CampoExtraido"
+          },
+          "title": "Campos",
+          "type": "object"
+        },
+        "error_llm": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Llm"
+        },
+        "tiempos": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "title": "Tiempos",
+          "type": "object"
+        }
+      },
+      "required": [
+        "nombre_archivo",
+        "ruta_archivo",
+        "tipo"
+      ],
+      "title": "DocumentoAnalizado",
+      "type": "object"
+    },
+    "Evidencia": {
+      "additionalProperties": false,
+      "properties": {
+        "documento": {
+          "description": "RutaArchivo del documento (trazabilidad)",
+          "title": "Documento",
+          "type": "string"
+        },
+        "tipo_documento": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tipo Documento"
+        },
+        "pagina": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Página 1-based donde aparece el dato",
+          "title": "Pagina"
+        },
+        "cita": {
+          "default": "",
+          "description": "Fragmento literal del texto OCR alrededor del dato",
+          "title": "Cita",
+          "type": "string"
+        },
+        "valor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valor"
+        },
+        "verificada": {
+          "default": false,
+          "description": "True si el valor se localizó en el texto del documento",
+          "title": "Verificada",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "documento"
+      ],
+      "title": "Evidencia",
+      "type": "object"
+    },
+    "Hallazgo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "regla": {
+          "title": "Regla",
+          "type": "string"
+        },
+        "categoria": {
+          "enum": [
+            "completitud",
+            "legibilidad",
+            "identificacion",
+            "consistencia",
+            "vigencia",
+            "uso_suelo",
+            "alineamiento",
+            "predial",
+            "extraccion"
+          ],
+          "title": "Categoria",
+          "type": "string"
+        },
+        "resultado": {
+          "enum": [
+            "cumple",
+            "no_cumple",
+            "revisar",
+            "informativo"
+          ],
+          "title": "Resultado",
+          "type": "string"
+        },
+        "severidad": {
+          "enum": [
+            "critica",
+            "revision",
+            "info"
+          ],
+          "title": "Severidad",
+          "type": "string"
+        },
+        "descripcion": {
+          "title": "Descripcion",
+          "type": "string"
+        },
+        "evidencias": {
+          "items": {
+            "$ref": "#/$defs/Evidencia"
+          },
+          "title": "Evidencias",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "regla",
+        "categoria",
+        "resultado",
+        "severidad",
+        "descripcion"
+      ],
+      "title": "Hallazgo",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "default": "1.0.0",
+      "title": "Version",
+      "type": "string"
+    },
+    "expediente_id": {
+      "title": "Expediente Id",
+      "type": "string"
+    },
+    "estado": {
+      "enum": [
+        "Cumple",
+        "Requiere revisión",
+        "No cumple"
+      ],
+      "title": "Estado",
+      "type": "string"
+    },
+    "estado_reglas": {
+      "enum": [
+        "Cumple",
+        "Requiere revisión",
+        "No cumple"
+      ],
+      "title": "Estado Reglas",
+      "type": "string"
+    },
+    "estado_llm": {
+      "anyOf": [
+        {
+          "enum": [
+            "Cumple",
+            "Requiere revisión",
+            "No cumple"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Estado Llm"
+    },
+    "confianza": {
+      "title": "Confianza",
+      "type": "number"
+    },
+    "nivel_confianza": {
+      "enum": [
+        "alta",
+        "media",
+        "baja"
+      ],
+      "title": "Nivel Confianza",
+      "type": "string"
+    },
+    "factores_confianza": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Factores Confianza",
+      "type": "object"
+    },
+    "resumen": {
+      "title": "Resumen",
+      "type": "string"
+    },
+    "observaciones": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Observaciones",
+      "type": "array"
+    },
+    "dictamen_por": {
+      "default": "reglas",
+      "enum": [
+        "llm",
+        "reglas"
+      ],
+      "title": "Dictamen Por",
+      "type": "string"
+    },
+    "uso_requerido": {
+      "title": "Uso Requerido",
+      "type": "string"
+    },
+    "fecha_referencia": {
+      "title": "Fecha Referencia",
+      "type": "string"
+    },
+    "documentos_recibidos": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Documentos Recibidos",
+      "type": "array"
+    },
+    "documentos_faltantes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Documentos Faltantes",
+      "type": "array"
+    },
+    "requisitos_cumplidos": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Requisitos Cumplidos",
+      "type": "array"
+    },
+    "requisitos_no_cumplidos": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Requisitos No Cumplidos",
+      "type": "array"
+    },
+    "hallazgos": {
+      "items": {
+        "$ref": "#/$defs/Hallazgo"
+      },
+      "title": "Hallazgos",
+      "type": "array"
+    },
+    "documentos": {
+      "items": {
+        "$ref": "#/$defs/DocumentoAnalizado"
+      },
+      "title": "Documentos",
+      "type": "array"
+    },
+    "proveedor_llm": {
+      "title": "Proveedor Llm",
+      "type": "string"
+    },
+    "modelo_llm": {
+      "title": "Modelo Llm",
+      "type": "string"
+    },
+    "tiempos": {
+      "additionalProperties": {
+        "type": "number"
+      },
+      "title": "Tiempos",
+      "type": "object"
+    }
+  },
+  "required": [
+    "expediente_id",
+    "estado",
+    "estado_reglas",
+    "confianza",
+    "nivel_confianza",
+    "resumen",
+    "uso_requerido",
+    "fecha_referencia",
+    "documentos_recibidos",
+    "documentos_faltantes",
+    "requisitos_cumplidos",
+    "requisitos_no_cumplidos",
+    "hallazgos",
+    "documentos",
+    "proveedor_llm",
+    "modelo_llm",
+    "tiempos"
+  ],
+  "title": "ResultadoExpediente",
+  "type": "object"
+}

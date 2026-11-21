@@ -1,0 +1,14 @@
+# Módulo de análisis con LLM (LangChain + LangGraph) y visor Streamlit.
+# Instalar DESPUÉS de requirements.txt, dentro del mismo .venv:
+#   .venv\Scripts\pip install -r requirements.txt -r requirements-llm.txt
+# (PaddleOCR es opcional para este módulo: el análisis usa Tesseract en paralelo.)
+
+langchain>=1.0,<2
+langchain-core>=1.0,<2
+langgraph>=1.0,<2
+langchain-ollama>=1.0,<2          # LLM local: Ollama (qwen3.5:9b)
+langchain-anthropic>=1.0,<2       # LLM online: Claude Haiku 5.5 (fallback)
+python-dotenv>=1.0
+
+# Visor de pruebas
+streamlit>=1.46
