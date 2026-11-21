@@ -80,7 +80,7 @@ public/docs/<tipo>/caso-00N.pdf    PDFs que muestra hoy el front (8 casos)
 Ramas: `main` (integración), `Wendy` (pipeline/filtro), `SabrinaMichaus` (front),
 `SergioCalderas` (front + BD), `YaxLira` (Fase 2 de extracción + validación cruzada: `ocr_pipeline/`,
 `procesamiento/etapa_extraccion.py`, `procesamiento/etapa_verificacion.py`; PR hacia `main`),
-`AlbertoFlores` (hoy apunta al mismo commit que una versión anterior de `YaxLira`; no tiene trabajo propio).
+`AlbertoFlores` (análisis multiagente con LLM: `analisis/`, `app_streamlit.py`, `README_ANALISIS.md`; integrado en `main`).
 
 ## 4. Base de datos (Supabase Postgres, proyecto "Hackaton")
 
@@ -260,6 +260,13 @@ cruzada 1.0 sin discrepancias (el semáforo queda AMARILLO solo por RG-01: la li
 sintética venció el 03-mar-2026); expediente `v` → ROJO con VC-05, VC-02, VC-04 y VC-03.
 
 Después: normalización fina → riesgos RG → bbox en la evidencia → dictamen.
+
+**Análisis con IA** (`analisis/`, ver `README_ANALISIS.md`): `POST /api/analisis/caso` (`procesamiento/api_analisis.py`)
+analiza los PDFs de un caso y la tarjeta "Análisis con IA" de la vista del caso (`src/components/AnalisisIA.jsx`)
+muestra estado, semáforo y hallazgos con enlace a la página. El filtro de calidad (Fase 1) corre en paralelo con
+el OCR; un documento `VOLVER_A_SUBIR` queda fuera de la validación cruzada y deja el semáforo en GRIS.
+`--precalentar` y `etapa_extraccion` usan ahora el OCR paralelo en color de `analisis/ocr_rapido.py`
+(`VERSION_TEXTO = "texto v2"`); `OCR_MOTOR=serial` vuelve al motor anterior de `ocr_pipeline`.
 
 ## 8. Cómo correr
 
