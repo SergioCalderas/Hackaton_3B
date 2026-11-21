@@ -1,0 +1,15 @@
+# Dependencias de ocr_pipeline para el BACKEND del equipo (procesamiento/ -> Fase 2 y validación cruzada).
+# Se incluye desde server/requirements.txt.
+#
+# Sin Paddle ni OpenCV propio a propósito: usa el opencv-python-headless y el PyMuPDF del filtro de
+# calidad (filtro_calidad/requirements.txt). paddlex fija opencv-contrib-python==4.10.0.84, que se
+# pisa con opencv-python-headless porque ambos instalan `cv2`. Sin Paddle, el motor híbrido trabaja
+# solo con Tesseract ("Paddle no disponible: sin respaldo"), que en la comparación fue el mejor motor.
+#
+# Requiere además el binario de Tesseract y la carpeta tessdata/ (ver ocr_pipeline/README.md).
+pytesseract>=0.3.13
+rapidfuzz>=3.9
+pydantic>=2.7
+tqdm>=4.66
+openpyxl>=3.1
+pillow>=10.0

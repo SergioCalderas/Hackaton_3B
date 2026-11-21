@@ -97,7 +97,8 @@ export default function Filtro() {
     const k = `${tabla}-${id}`;
     setCorriendo((c) => ({ ...c, [k]: true }));
     try {
-      await pedir(`/api/documentos/${tabla}/${id}/verificar?hasta=calidad`, { method: 'POST' });
+      // Pipeline completo: Fase 1 (calidad) + Fase 2 (extracción de campos para la validación cruzada)
+      await pedir(`/api/documentos/${tabla}/${id}/verificar`, { method: 'POST' });
       await cargar();
     } catch (e) { setError(e.message); }
     finally { setCorriendo((c) => ({ ...c, [k]: false })); }

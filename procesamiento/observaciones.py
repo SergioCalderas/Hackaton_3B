@@ -9,8 +9,8 @@ que consumen el front y el dictamen con LLM:
   bloquea:   True si impide continuar (hay que volver a subir o falta el archivo)
   id:        estable ("escrituras-3") para que el dictamen pueda citarlo
 
-Cuando existan las fases de extracción y validación cruzada, sus hallazgos (VC-xx, RG-xx)
-se agregan aquí con la misma forma.
+Los hallazgos de la validación cruzada (VC-xx) se agregan en de_operacion() con la misma forma
+(ver etapa_verificacion.py). Los de riesgos (RG-xx) se agregarán igual.
 """
 from __future__ import annotations
 
@@ -87,6 +87,12 @@ def de_documento(tabla: str, doc: dict) -> list[dict]:
 
 
 def de_operacion(op: dict) -> list[dict]:
-    """Todas las observaciones de una operación, de la más grave a la más leve."""
+    """Todas las observaciones de una operación, de la más grave a la más leve.
+    Incluye las de la validación cruzada (etapa_verificacion.py) cuando hay campos extraídos."""
     obs = [o for tabla, doc in op["documentos"].items() for o in de_documento(tabla, doc)]
+    try:
+        from . import etapa_verificacion
+        obs += etapa_verificacion.observaciones(op)
+    except Exception as e:  # noqa: BLE001 — la validación cruzada nunca debe romper la Fase 1
+        print(f"[procesamiento] Validación cruzada omitida: {e.__class__.__name__}: {e}", flush=True)
     return sorted(obs, key=lambda o: (ORDEN_SEVERIDAD[o["severidad"]], o["tabla"]))

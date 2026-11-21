@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo · OCR y verificación de expedientes</title>
+<style>
+  :root {
+    --bg: #f4f6f9; --panel: #ffffff; --text: #14181f; --muted: #556070; --line: #d5dbe3;
+    --accent: #1f4fd1; --accent-soft: #e6edff;
+    --ok: #12773a; --ok-bg: #e3f5e9; --warn: #8a5a00; --warn-bg: #fff3d1; --bad: #b3261e; --bad-bg: #fde7e5;
+    --mark: #ffe066; --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 18px; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; line-height: 1.45; }
+  header { background: #0f1b33; color: #fff; padding: 18px 28px; display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+  header h1 { font-size: 1.5rem; margin: 0; }
+  header span { color: #b9c4dc; font-size: .95rem; }
+  main { max-width: 1280px; margin: 0 auto; padding: 22px 24px 60px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .tab { font-size: 1.1rem; font-weight: 600; padding: 12px 26px; border: 2px solid var(--line); background: var(--panel);
+         border-radius: var(--radius) var(--radius) 0 0; cursor: pointer; color: var(--muted); }
+  .tab[aria-selected="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; margin-bottom: 18px; }
+  .panel h2 { margin: 0 0 14px; font-size: 1.3rem; }
+  .panel h3 { margin: 18px 0 10px; font-size: 1.1rem; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; }
+  label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+  select, button { font: inherit; }
+  select { padding: 10px 12px; border: 2px solid var(--line); border-radius: 10px; background: #fff; min-width: 240px; }
+  button.primary { background: var(--accent); color: #fff; border: 0; border-radius: 10px; padding: 12px 30px; font-weight: 700; cursor: pointer; }
+  button.primary:disabled { opacity: .5; cursor: not-allowed; }
+  button.secondary { background: #fff; color: var(--accent); border: 2px solid var(--accent); border-radius: 10px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+  .drop { flex: 1 1 260px; border: 3px dashed var(--line); border-radius: var(--radius); padding: 18px; text-align: center; cursor: pointer;
+          background: #fafbfd; min-height: 120px; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+  .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+  .drop.filled { border-style: solid; border-color: var(--ok); background: var(--ok-bg); }
+  .drop strong { font-size: 1.05rem; }
+  .drop .file { font-size: .9rem; color: var(--muted); word-break: break-all; }
+  .drop input { display: none; }
+  .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  .status-line { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 1.05rem; min-height: 1.6em; }
+  .spinner { width: 26px; height: 26px; border: 4px solid var(--accent-soft); border-top-color: var(--accent); border-radius: 50%;
+             animation: girar 0.9s linear infinite; }
+  @keyframes girar { to { transform: rotate(360deg); } }
+  .error { background: var(--bad-bg); color: var(--bad); border: 2px solid var(--bad); border-radius: var(--radius); padding: 14px 18px; font-weight: 600; }
+  .badge { display: inline-block; padding: 4px 14px; border-radius: 999px; font-weight: 700; }
+  .ok { background: var(--ok-bg); color: var(--ok); } .warn { background: var(--warn-bg); color: var(--warn); } .bad { background: var(--bad-bg); color: var(--bad); }
+  .neutral { background: #eceff3; color: var(--muted); }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+  .kpi { border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+  .kpi .lbl { color: var(--muted); font-size: .9rem; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+  .kpi .val { font-size: 1.35rem; font-weight: 700; margin-top: 4px; }
+  .kpi .big { font-size: 3rem; font-weight: 800; line-height: 1.1; }
+  .bar { height: 16px; background: #e8ecf1; border-radius: 999px; overflow: hidden; margin-top: 8px; }
+  .bar > div { height: 100%; }
+  .mismatch { outline: 3px solid var(--bad); }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { background: #f0f3f7; font-weight: 700; position: sticky; top: 0; }
+  td.campo { font-weight: 700; white-space: nowrap; }
+  td.valor { font-weight: 600; }
+  .evid { color: var(--muted); font-size: .88rem; }
+  mark { background: var(--mark); color: var(--text); padding: 0 2px; border-radius: 3px; font-weight: 700; }
+  .scroll { overflow-x: auto; }
+  details { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 10px; background: #fff; }
+  details > summary { cursor: pointer; padding: 12px 16px; font-weight: 600; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  details pre { margin: 0; padding: 14px 16px; white-space: pre-wrap; word-break: break-word; font-size: .9rem; max-height: 480px;
+                overflow: auto; background: #fbfcfe; border-top: 1px solid var(--line); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 6px 14px; border-radius: 999px; font-weight: 600; }
+  ul.alerts { margin: 0; padding-left: 22px; } ul.alerts li { margin-bottom: 6px; }
+  .semaforo { display: flex; align-items: center; gap: 22px; }
+  .luces { background: #1c2230; border-radius: 22px; padding: 12px 10px; display: flex; flex-direction: column; gap: 10px; }
+  .luz { width: 46px; height: 46px; border-radius: 50%; background: #3b4252; opacity: .35; }
+  .luz.on.rojo { background: #e5383b; opacity: 1; box-shadow: 0 0 18px #e5383b; }
+  .luz.on.amarillo { background: #ffc300; opacity: 1; box-shadow: 0 0 18px #ffc300; }
+  .luz.on.verde { background: #2bb24c; opacity: 1; box-shadow: 0 0 18px #2bb24c; }
+  .nota { font-size: .9rem; color: var(--warn); background: var(--warn-bg); padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
+  .muted { color: var(--muted); }
+  .hidden { display: none !important; }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Verificación de expedientes · Demo</h1>
+  <span>OCR local + extracción de campos con evidencia + validación cruzada</span>
+</header>
+
+<main>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="documento">1 · Documento</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="expediente">2 · Expediente</button>
+  </div>
+
+  <!-- ===================== Pestaña Documento ===================== -->
+  <section id="tab-documento">
+    <div class="panel">
+      <h2>Procesar un documento</h2>
+      <div class="row">
+        <label class="drop" id="drop-doc">
+          <input type="file" id="file-doc" accept=".pdf,.jpg,.jpeg,.png">
+          <strong>Arrastra aquí un PDF, JPG o PNG</strong>
+          <span class="muted">o haz clic para elegirlo</span>
+          <span class="file" id="file-doc-name"></span>
+        </label>
+        <label class="field">Tipo declarado
+          <select id="tipo-doc">
+            <option value="">Sin especificar</option>
+            <option>Predial</option><option>Alineamiento</option><option>Escritura</option><option value="UsoDeSuelo">Uso de suelo</option>
+          </select>
+        </label>
+        <button class="primary" id="btn-doc" disabled>Procesar</button>
+      </div>
+      <div class="status-line" id="status-doc"></div>
+    </div>
+    <div id="out-doc"></div>
+  </section>
+
+  <!-- ===================== Pestaña Expediente ===================== -->
+  <section id="tab-expediente" class="hidden">
+    <div class="panel">
+      <h2>Verificar un expediente (un archivo por tipo)</h2>
+      <div class="grid4" id="drops-exp"></div>
+      <div class="row">
+        <label class="field">Modo de respuesta
+          <select id="modo-exp">
+            <option value="compacto">Compacto (sin texto completo)</option>
+            <option value="completo">Completo (con texto)</option>
+          </select>
+        </label>
+        <button class="primary" id="btn-exp" disabled>Verificar expediente</button>
+      </div>
+      <div class="status-line" id="status-exp"></div>
+    </div>
+    <div id="out-exp"></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ============================================================
+   Funciones puras de render: reciben el JSON de la API y devuelven HTML.
+   (Se exponen en window.Demo para poder probarlas sin navegador.)
+   ============================================================ */
+const TIPOS = ["Escritura", "Predial", "Alineamiento", "UsoDeSuelo"];
+const TIPO_LABEL = { Escritura: "Escritura", Predial: "Predial", Alineamiento: "Alineamiento", UsoDeSuelo: "Uso de suelo" };
+const ESTADO_INFO = {
+  ok: ["ok", "OK"], low_confidence: ["warn", "Calidad baja"], low_text: ["warn", "Poco texto"],
+  partial: ["warn", "Parcial"], error: ["bad", "Error"],
+};
+const NIVEL_INFO = { alto: "ok", medio: "warn", bajo: "bad", sin_datos: "neutral" };
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function pct(x) { return x == null ? "—" : Math.round(x * 100) + " %"; }
+function colorCalidad(x) { return x == null ? "neutral" : x >= 0.75 ? "ok" : x >= 0.65 ? "warn" : "bad"; }
+function varColor(cls) { return { ok: "var(--ok)", warn: "#d99a00", bad: "var(--bad)", neutral: "#9aa4b2" }[cls]; }
+
+/** Resalta `valor` dentro de `evidencia` (sin distinguir mayúsculas ni espacios múltiples). */
+function resaltar(evidencia, valor) {
+  const ev = String(evidencia ?? ""), v = String(valor ?? "").replace(/\s+/g, " ").trim();
+  if (!v) return esc(ev);
+  let i = ev.toLowerCase().indexOf(v.toLowerCase()), len = v.length;
+  if (i < 0) {  // intenta con el token más largo del valor
+    const tok = v.split(" ").sort((a, b) => b.length - a.length)[0];
+    if (tok && tok.length >= 3) { i = ev.toLowerCase().indexOf(tok.toLowerCase()); len = tok.length; }
+  }
+  if (i < 0) return esc(ev);
+  return esc(ev.slice(0, i)) + "<mark>" + esc(ev.slice(i, i + len)) + "</mark>" + esc(ev.slice(i + len));
+}
+
+function barra(x) {
+  const cls = colorCalidad(x), w = x == null ? 0 : Math.max(2, Math.round(x * 100));
+  return `<div class="bar" title="${pct(x)}"><div style="width:${w}%;background:${varColor(cls)}"></div></div>`;
+}
+
+function renderDocumento(doc) {
+  const [cls, lbl] = ESTADO_INFO[doc.Estado] || ["neutral", doc.Estado];
+  const tiposDistintos = doc.TipoDeclarado && doc.TipoDetectado && doc.TipoDeclarado !== doc.TipoDetectado;
+  const sinTipo = doc.TipoDeclarado && !doc.TipoDetectado;
+  const motores = [...new Set((doc.Paginas || []).map(p => p.Metodo === "native" ? "texto nativo" : (p.Motor || p.Metodo)))];
+  const campos = Object.entries(doc.CamposExtraidos || {}).filter(([k]) => k !== "Direccion");
+  const dir = (doc.CamposExtraidos || {}).Direccion;
+
+  let h = `<div class="panel"><h2>${esc(doc.NombreArchivo)}</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">Estado</div><div class="val"><span class="badge ${cls}">${esc(lbl)}</span></div></div>
+      <div class="kpi"><div class="lbl">Calidad del texto</div><div class="val">${pct(doc.CalidadTexto)}</div>${barra(doc.CalidadTexto)}</div>
+      <div class="kpi"><div class="lbl">Páginas</div><div class="val">${doc.NumPaginas}</div><div class="muted">${esc(motores.join(", "))}</div></div>
+      <div class="kpi ${tiposDistintos || sinTipo ? "mismatch" : ""}"><div class="lbl">Tipo declarado → detectado</div>
+        <div class="val">${esc(TIPO_LABEL[doc.TipoDeclarado] || "Sin especificar")} → ${esc(TIPO_LABEL[doc.TipoDetectado] || "No detectado")}</div>
+        ${tiposDistintos ? '<div class="badge bad" style="margin-top:6px">No coinciden</div>' : sinTipo ? '<div class="badge warn" style="margin-top:6px">No se pudo confirmar</div>' : ""}</div>
+    </div>`;
+  if (doc.Discrepancias && doc.Discrepancias.length) {
+    h += `<h3>Discrepancias del documento</h3><ul class="alerts">${doc.Discrepancias.map(d => `<li>${esc(d)}</li>`).join("")}</ul>`;
+  }
+  h += `</div>`;
+
+  h += `<div class="panel"><h2>Campos extraídos (${campos.length})</h2>`;
+  if (dir) h += `<p><strong>Dirección:</strong> ${esc(dir.Valor)} <span class="muted">(pág. ${dir.Pagina ?? "—"})</span></p>`;
+  if (!campos.length) {
+    h += `<p class="muted">No se extrajeron campos (texto ilegible o sin datos del predio).</p>`;
+  } else {
+    h += `<div class="scroll"><table><thead><tr><th>Campo</th><th>Valor</th><th>Pág.</th><th>Evidencia</th></tr></thead><tbody>`;
+    for (const [k, c] of campos) {
+      h += `<tr><td class="campo">${esc(k)}</td><td class="valor">${esc(c.Valor)}</td><td>${c.Pagina ?? "—"}</td>
+            <td class="evid">…${resaltar(c.Evidencia, c.Valor)}…</td></tr>`;
+    }
+    h += `</tbody></table></div>`;
+  }
+  h += `</div>`;
+
+  const paginas = doc.Paginas || [];
+  h += `<div class="panel"><h2>Texto por página</h2>`;
+  if (!paginas.some(p => p.Texto)) {
+    h += `<p class="muted">Respuesta en modo compacto: no incluye texto.</p>`;
+  }
+  for (const p of paginas) {
+    if (!p.Texto && p.Texto !== "") continue;
+    const motor = p.Metodo === "native" ? "texto nativo" : (p.Motor || p.Metodo);
+    h += `<details><summary>Página ${p.Numero} <span class="badge neutral">${esc(motor)}</span>
+          <span class="badge ${colorCalidad(p.CalidadTexto)}">calidad ${pct(p.CalidadTexto)}</span>
+          <button class="secondary" data-copiar="${p.Numero}" type="button">Copiar</button></summary>
+          <pre id="texto-pag-${p.Numero}">${esc(p.Texto || "(sin texto)")}</pre></details>`;
+  }
+  h += `</div>` + panelJSON(doc, "documento");
+  return h;
+}
+
+function panelJSON(obj, nombre) {
+  return `<div class="panel"><h2>JSON crudo</h2>
+    <div class="toolbar">
+      <button class="secondary" type="button" data-json-ver>Ver / ocultar JSON</button>
+      <button class="secondary" type="button" data-json-descargar="${esc(nombre)}">Descargar JSON</button>
+    </div>
+    <pre class="hidden" data-json-pre style="max-height:520px;overflow:auto;background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:.85rem;white-space:pre-wrap">${esc(JSON.stringify(obj, null, 2))}</pre></div>`;
+}
+
+/** Semáforo SOLO DE PRUEBA (provisional), calculado en el front. */
+function semaforo(exp) {
+  const no = (exp.CamposNoCoinciden || []).map(x => x.Campo);
+  const criticos = no.filter(c => c === "ClaveCatastral" || c === "Propietario");
+  if (criticos.length) return { color: "rojo", motivo: `Discrepancia en ${criticos.join(" y ")}` };
+  if (exp.NivelMatch === "bajo") return { color: "rojo", motivo: "Puntaje de coincidencia bajo" };
+  const razones = [];
+  if ((exp.DocumentosFaltantes || []).length) razones.push(`faltan ${exp.DocumentosFaltantes.length} documento(s)`);
+  if (exp.NivelMatch === "medio" || exp.NivelMatch === "sin_datos") razones.push(`puntaje ${exp.NivelMatch === "medio" ? "medio" : "sin datos suficientes"}`);
+  if (no.length) razones.push(`${no.length} discrepancia(s) no crítica(s)`);
+  if (razones.length) return { color: "amarillo", motivo: razones.join(", ") };
+  return { color: "verde", motivo: "Sin discrepancias ni documentos faltantes" };
+}
+
+function renderExpediente(exp) {
+  const docs = [...(exp.Documentos || [])].sort((a, b) => TIPOS.indexOf(a.TipoDocumento) - TIPOS.indexOf(b.TipoDocumento));
+  const porRuta = Object.fromEntries(docs.map(d => [d.RutaArchivo, d]));
+  const s = semaforo(exp);
+  const nivelCls = NIVEL_INFO[exp.NivelMatch] || "neutral";
+
+  let h = `<div class="panel"><div class="kpis">
+      <div class="kpi"><div class="lbl">Puntaje de coincidencia</div><div class="big">${exp.PuntajeMatch == null ? "—" : exp.PuntajeMatch.toFixed(2)}</div>${barra(exp.PuntajeMatch)}</div>
+      <div class="kpi"><div class="lbl">Nivel</div><div class="big"><span class="badge ${nivelCls}" style="font-size:2rem;padding:4px 22px">${esc((exp.NivelMatch || "").replace("_", " "))}</span></div></div>
+      <div class="kpi semaforo"><div class="luces">
+          <div class="luz rojo ${s.color === "rojo" ? "on" : ""}"></div>
+          <div class="luz amarillo ${s.color === "amarillo" ? "on" : ""}"></div>
+          <div class="luz verde ${s.color === "verde" ? "on" : ""}"></div></div>
+        <div><div class="lbl">Semáforo</div><div class="val" data-semaforo="${s.color}">${s.color.toUpperCase()}</div>
+          <div class="muted">${esc(s.motivo)}</div></div></div>
+    </div>
+    <div class="nota">⚠ Semáforo <strong>provisional, solo de prueba</strong>, calculado en esta página con una regla simple:
+      rojo si difieren la clave catastral o el propietario (o el puntaje es bajo); amarillo si faltan documentos,
+      el puntaje es medio o hay otras discrepancias; verde si no hay discrepancias ni faltantes.
+      El dictamen oficial lo darán las reglas del sistema y el LLM.</div>
+    <p class="muted" style="margin:10px 0 0">Expediente <strong>${esc(exp.ExpedienteId)}</strong> · ${docs.length} documento(s) · modo ${esc(exp.Modo || "completo")}</p>
+  </div>`;
+
+  // Coinciden / faltantes
+  h += `<div class="panel"><h2>Campos que coinciden (${(exp.CamposCoinciden || []).length})</h2><div class="chips">
+    ${(exp.CamposCoinciden || []).map(c => `<span class="chip ok">✔ ${esc(c)}</span>`).join("") || '<span class="muted">Ninguno</span>'}</div>
+    <h3>Documentos faltantes</h3><div class="chips">
+    ${(exp.DocumentosFaltantes || []).map(t => `<span class="chip warn">${esc(TIPO_LABEL[t] || t)}</span>`).join("") || '<span class="chip ok">Ninguno: los 4 tipos están presentes</span>'}</div></div>`;
+
+  // No coinciden: tabla comparativa, una columna por documento
+  const nc = exp.CamposNoCoinciden || [];
+  h += `<div class="panel"><h2 style="color:var(--bad)">Campos que NO coinciden (${nc.length})</h2>`;
+  if (!nc.length) {
+    h += `<p class="badge ok">Sin discrepancias</p>`;
+  } else {
+    h += `<div class="scroll"><table data-tabla="no-coinciden"><thead><tr><th>Campo</th>
+      ${docs.map(d => `<th>${esc(TIPO_LABEL[d.TipoDocumento] || d.TipoDocumento || "?")}<div class="muted" style="font-weight:400;font-size:.8rem">${esc(d.NombreArchivo)}</div></th>`).join("")}</tr></thead><tbody>`;
+    for (const x of nc) {
+      const porDoc = {};
+      for (const v of x.Valores || []) (porDoc[v.Documento] ||= []).push(v);
+      h += `<tr class="bad-row"><td class="campo" style="color:var(--bad)">${esc(x.Campo)}
+              <div class="muted" style="font-weight:400;white-space:normal;font-size:.82rem">${esc(x.Detalle)}${x.Similitud != null ? ` · similitud ${x.Similitud}` : ""}</div></td>`;
+      for (const d of docs) {
+        const vals = porDoc[d.RutaArchivo];
+        if (!vals) { h += `<td class="muted">—</td>`; continue; }
+        h += `<td>` + vals.map(v => {
+          const c = (porRuta[v.Documento]?.CamposExtraidos || {})[x.Campo];
+          const ev = c ? `<div class="evid">…${resaltar(c.Evidencia, v.Valor)}…</div>` : "";
+          return `<div class="valor" style="font-weight:700">${esc(v.Valor)}</div><div class="muted">pág. ${v.Pagina ?? "—"}</div>${ev}`;
+        }).join("<hr>") + `</td>`;
+      }
+      h += `</tr>`;
+    }
+    h += `</tbody></table></div>`;
+  }
+  h += `</div>`;
+
+  // Alertas
+  h += `<div class="panel"><h2>Alertas (${(exp.Alertas || []).length})</h2>${(exp.Alertas || []).length
+      ? `<ul class="alerts">${exp.Alertas.map(a => `<li>${esc(a)}</li>`).join("")}</ul>` : '<p class="muted">Sin alertas.</p>'}</div>`;
+
+  // Resumen por documento
+  h += `<div class="panel"><h2>Documentos</h2><div class="scroll"><table><thead><tr><th>Tipo</th><th>Archivo</th><th>Estado</th><th>Calidad</th><th>Campos</th></tr></thead><tbody>
+    ${docs.map(d => { const [c, l] = ESTADO_INFO[d.Estado] || ["neutral", d.Estado];
+      return `<tr><td>${esc(TIPO_LABEL[d.TipoDocumento] || "?")}</td><td>${esc(d.NombreArchivo)}</td><td><span class="badge ${c}">${esc(l)}</span></td>
+              <td style="min-width:140px">${pct(d.CalidadTexto)}${barra(d.CalidadTexto)}</td><td>${Object.keys(d.CamposExtraidos || {}).length}</td></tr>`; }).join("")}
+    </tbody></table></div></div>`;
+
+  return h + panelJSON(exp, "expediente");
+}
+
+/** Mensaje claro a partir de la respuesta de error del servidor. */
+async function mensajeError(res) {
+  let detalle = "";
+  try {
+    const j = await res.json();
+    detalle = Array.isArray(j.detail) ? j.detail.map(e => `${(e.loc || []).slice(1).join(".")}: ${e.msg}`).join("; ") : (j.detail || "");
+  } catch (_) { /* respuesta sin JSON */ }
+  const base = {
+    415: "Formato de archivo no soportado. Usa PDF, JPG o PNG.",
+    422: "El servidor no pudo procesar la solicitud (archivo dañado, protegido o datos inválidos).",
+    400: "Solicitud inválida.",
+    500: "Error interno del servidor. Revisa la consola donde corre uvicorn.",
+  }[res.status] || `El servidor respondió con error ${res.status}.`;
+  return detalle ? `${base} Detalle: ${detalle}` : base;
+}
+
+if (typeof window !== "undefined") window.Demo = { renderDocumento, renderExpediente, semaforo, resaltar, mensajeError };
+
+/* ============================================================
+   Interacción (solo en navegador)
+   ============================================================ */
+if (typeof document !== "undefined" && document.getElementById("tab-documento")) {
+  const $ = (id) => document.getElementById(id);
+
+  // Pestañas
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
+    $("tab-documento").classList.toggle("hidden", t.dataset.tab !== "documento");
+    $("tab-expediente").classList.toggle("hidden", t.dataset.tab !== "expediente");
+  }));
+
+  const EXT_OK = /\.(pdf|jpe?g|png)$/i;
+  function zonaArrastre(drop, input, nombreEl, alCambiar) {
+    const poner = (f) => {
+      if (f && !EXT_OK.test(f.name)) { alert("Formato no soportado: usa PDF, JPG o PNG."); return; }
+      drop._archivo = f || null;
+      nombreEl.textContent = f ? `${f.name} (${(f.size / 1048576).toFixed(2)} MB)` : "";
+      drop.classList.toggle("filled", !!f);
+      alCambiar();
+    };
+    input.addEventListener("change", () => poner(input.files[0]));
+    ["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+    ["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+    drop.addEventListener("drop", e => poner(e.dataTransfer.files[0]));
+  }
+
+  function conCronometro(statusEl, texto) {
+    const t0 = performance.now();
+    statusEl.innerHTML = `<div class="spinner"></div><span>${texto} <strong id="${statusEl.id}-t">0.0 s</strong></span>`;
+    const iv = setInterval(() => { const el = $(`${statusEl.id}-t`); if (el) el.textContent = ((performance.now() - t0) / 1000).toFixed(1) + " s"; }, 100);
+    return (final) => { clearInterval(iv); statusEl.innerHTML = final.replace("{t}", ((performance.now() - t0) / 1000).toFixed(1) + " s"); };
+  }
+
+  function activarAcciones(cont, obj, nombre) {
+    cont.querySelectorAll("[data-copiar]").forEach(b => b.addEventListener("click", async (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const txt = $(`texto-pag-${b.dataset.copiar}`).textContent;
+      try { await navigator.clipboard.writeText(txt); }
+      catch (_) { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+      const prev = b.textContent; b.textContent = "Copiado ✔"; setTimeout(() => (b.textContent = prev), 1500);
+    }));
+    cont.querySelectorAll("[data-json-ver]").forEach(b => b.addEventListener("click", () =>
+      cont.querySelector("[data-json-pre]").classList.toggle("hidden")));
+    cont.querySelectorAll("[data-json-descargar]").forEach(b => b.addEventListener("click", () => {
+      const url = URL.createObjectURL(new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" }));
+      const a = Object.assign(document.createElement("a"), { href: url, download: `${nombre}.json` });
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }));
+  }
+
+  async function enviar(url, form, statusEl, outEl, boton, render, nombre) {
+    boton.disabled = true; outEl.innerHTML = "";
+    const fin = conCronometro(statusEl, "Procesando…");
+    try {
+      const res = await fetch(url, { method: "POST", body: form });
+      if (!res.ok) {
+        const msg = await mensajeError(res);
+        fin(`<span class="badge bad">Error ${res.status}</span> <span class="muted">tras {t}</span>`);
+        outEl.innerHTML = `<div class="error">${esc(msg)}</div>`;
+        return;
+      }
+      const data = await res.json();
+      fin(`<span class="badge ok">Listo</span> <span>en {t}</span>`);
+      outEl.innerHTML = render(data);
+      activarAcciones(outEl, data, nombre);
+    } catch (e) {
+      fin(`<span class="badge bad">Sin conexión</span>`);
+      outEl.innerHTML = `<div class="error">No se pudo conectar con el servidor. ¿Está corriendo <code>uvicorn api:app --port 8000</code>? (${esc(e.message)})</div>`;
+    } finally { boton.disabled = false; }
+  }
+
+  // ---- Pestaña Documento
+  const dropDoc = $("drop-doc");
+  zonaArrastre(dropDoc, $("file-doc"), $("file-doc-name"), () => ($("btn-doc").disabled = !dropDoc._archivo));
+  $("btn-doc").addEventListener("click", () => {
+    const f = new FormData();
+    f.append("archivo", dropDoc._archivo);
+    if ($("tipo-doc").value) f.append("tipo_declarado", $("tipo-doc").value);
+    const base = dropDoc._archivo.name.replace(/\.[^.]+$/, "");
+    enviar("/documento?modo=completo", f, $("status-doc"), $("out-doc"), $("btn-doc"), renderDocumento, `documento_${base}`);
+  });
+
+  // ---- Pestaña Expediente
+  const drops = {};
+  $("drops-exp").innerHTML = TIPOS.map(t => `
+    <label class="drop" id="drop-${t}"><input type="file" accept=".pdf,.jpg,.jpeg,.png">
+      <strong>${TIPO_LABEL[t]}</strong><span class="muted">Arrastra o haz clic</span><span class="file"></span></label>`).join("");
+  const actualizarExp = () => ($("btn-exp").disabled = !TIPOS.some(t => drops[t]._archivo));
+  for (const t of TIPOS) {
+    const d = $(`drop-${t}`); drops[t] = d;
+    zonaArrastre(d, d.querySelector("input"), d.querySelector(".file"), actualizarExp);
+  }
+  $("btn-exp").addEventListener("click", () => {
+    const f = new FormData();
+    for (const t of TIPOS) if (drops[t]._archivo) { f.append("archivos", drops[t]._archivo); f.append("tipos", t); }
+    const modo = $("modo-exp").value;
+    enviar(`/expediente?modo=${modo}`, f, $("status-exp"), $("out-exp"), $("btn-exp"), renderExpediente, `expediente_${modo}`);
+  });
+}
+</script>
+</body>
+</html>

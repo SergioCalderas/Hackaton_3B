@@ -169,13 +169,14 @@ def _consultar_estado(cur, conn) -> tuple[dict, dict]:
             "SELECT DISTINCT ON (tabla, documento_id) tabla, documento_id, estado, motivo, mensaje, "
             "tipo_detectado, detalle->'calidad'->'observaciones', detalle->'calidad'->'legibilidad', "
             "detalle->'calidad'->'confianza_ocr', detalle->'calidad'->>'tipo_detectado_nombre', "
-            "detalle->>'nombre', creado_en "
+            "detalle->>'nombre', creado_en, detalle->'extraccion' "
             "FROM filtro_resultados ORDER BY tabla, documento_id, creado_en DESC")
-        for t, d, est, mot, msg, tipo, obs, leg, conf, tipo_nom, nombre, en in cur.fetchall():
+        for t, d, est, mot, msg, tipo, obs, leg, conf, tipo_nom, nombre, en, ext in cur.fetchall():
             guardados[(t, d)] = {"estado": est, "motivo": mot, "mensaje": msg, "tipo_detectado": tipo,
                                  "tipo_detectado_nombre": tipo_nom, "observaciones": obs or [],
                                  "legibilidad": leg, "confianza_ocr": conf, "archivo_verificado": nombre,
-                                 "verificado_en": en.isoformat()}
+                                 "verificado_en": en.isoformat(),
+                                 "extraccion": ext}  # Fase 2 (None si se verificó con ?hasta=calidad)
     except Exception:  # la tabla filtro_resultados aún no existe
         conn.rollback()
     return archivos, guardados

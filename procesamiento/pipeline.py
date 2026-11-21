@@ -46,8 +46,9 @@ class ResultadoEtapa:
 
 ETAPAS: list[tuple[str, Callable[[Documento], ResultadoEtapa]]] = [
     ("calidad", etapa_calidad.ejecutar),        # Fase 1
-    ("extraccion", etapa_extraccion.ejecutar),  # Fase 2 (pendiente)
-    # ("normalizacion", ...), ("validacion_cruzada", ...), ...
+    ("extraccion", etapa_extraccion.ejecutar),  # Fase 2 (ocr_pipeline: campos con evidencia)
+    # La validación cruzada es por expediente, no por documento: etapa_verificacion.py
+    # (la llama observaciones.de_operacion). Siguiente: ("riesgos", ...)
 ]
 
 

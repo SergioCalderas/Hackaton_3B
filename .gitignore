@@ -1,14 +1,55 @@
+# ---------- Front (Node / Vite) ----------
 node_modules
 dist
-*.zip
-.env
-.cursor/
 .vite
+*.zip
+certs/
+
+# ---------- Secretos ----------
 .env
 .env*.local
-.cursor/
-certs/
+
+# ---------- Python ----------
+.venv/
+.venv-*/
+venv/
 __pycache__/
 *.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ---------- Pipeline de procesamiento / filtro de calidad (Wendy) ----------
 procesamiento/_trabajo/
 filtro_calidad/_subidas/
+
+# ---------- Módulo OCR y verificación (ocr_pipeline/) ----------
+# Salidas generadas (se regeneran con run_ocr.py / export_json.py / compare_engines.py)
+output/
+output_*/
+comparison/
+*.xlsx
+*.tmp
+# Modelos y datos de OCR locales
+tessdata/
+.paddlex/
+.paddleocr/
+paddle_models/
+*.pdmodel
+*.pdiparams
+
+# ---------- Logs ----------
+*.log
+
+# ---------- Editores / SO ----------
+.cursor/
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Nota: las 4 carpetas de documentos del reto (Alineamiento_y_Numero_Oficial/, Escritura/,
+# Predial/, Uso_de_suelo/) se dejan trackeadas a propósito (dataset compartido del equipo).
+# Para datos de prueba propios usa local_data/ (ignorada):
+local_data/

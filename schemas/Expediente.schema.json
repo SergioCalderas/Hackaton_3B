@@ -1,0 +1,653 @@
+{
+  "$defs": {
+    "Campo": {
+      "additionalProperties": false,
+      "description": "Un dato extraído del texto, con su evidencia para trazabilidad.",
+      "properties": {
+        "Valor": {
+          "description": "Valor tal como aparece en el texto (limpio)",
+          "title": "Valor",
+          "type": "string"
+        },
+        "Normalizado": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Valor normalizado para comparar (mayúsculas, sin acentos, solo dígitos, ISO, m2...)",
+          "title": "Normalizado"
+        },
+        "Pagina": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Página de donde se extrajo (1-based)",
+          "title": "Pagina"
+        },
+        "Evidencia": {
+          "description": "Fragmento de texto alrededor del valor",
+          "title": "Evidencia",
+          "type": "string"
+        },
+        "Regla": {
+          "description": "Regla de extracción que lo encontró",
+          "title": "Regla",
+          "type": "string"
+        }
+      },
+      "required": [
+        "Valor",
+        "Normalizado",
+        "Pagina",
+        "Evidencia",
+        "Regla"
+      ],
+      "title": "Campo",
+      "type": "object"
+    },
+    "CampoConsolidado": {
+      "additionalProperties": false,
+      "properties": {
+        "Valor": {
+          "description": "Valor más frecuente entre los documentos",
+          "title": "Valor",
+          "type": "string"
+        },
+        "Normalizado": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Normalizado"
+        },
+        "Fuentes": {
+          "items": {
+            "$ref": "#/$defs/ValorFuente"
+          },
+          "title": "Fuentes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "Valor",
+        "Normalizado",
+        "Fuentes"
+      ],
+      "title": "CampoConsolidado",
+      "type": "object"
+    },
+    "ComparacionPar": {
+      "additionalProperties": false,
+      "properties": {
+        "DocumentoA": {
+          "title": "Documentoa",
+          "type": "string"
+        },
+        "DocumentoB": {
+          "title": "Documentob",
+          "type": "string"
+        },
+        "Puntaje": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Puntaje"
+        },
+        "Coinciden": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Coinciden",
+          "type": "array"
+        },
+        "NoCoinciden": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Nocoinciden",
+          "type": "array"
+        }
+      },
+      "required": [
+        "DocumentoA",
+        "DocumentoB",
+        "Puntaje",
+        "Coinciden",
+        "NoCoinciden"
+      ],
+      "title": "ComparacionPar",
+      "type": "object"
+    },
+    "Discrepancia": {
+      "additionalProperties": false,
+      "properties": {
+        "Campo": {
+          "title": "Campo",
+          "type": "string"
+        },
+        "Detalle": {
+          "title": "Detalle",
+          "type": "string"
+        },
+        "Similitud": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "0..1 (1 = idéntico) cuando aplica",
+          "title": "Similitud"
+        },
+        "Valores": {
+          "items": {
+            "$ref": "#/$defs/ValorFuente"
+          },
+          "title": "Valores",
+          "type": "array"
+        }
+      },
+      "required": [
+        "Campo",
+        "Detalle",
+        "Valores"
+      ],
+      "title": "Discrepancia",
+      "type": "object"
+    },
+    "Documento": {
+      "additionalProperties": false,
+      "properties": {
+        "VersionEsquema": {
+          "default": "1.1.0",
+          "title": "Versionesquema",
+          "type": "string"
+        },
+        "Modo": {
+          "default": "completo",
+          "description": "completo: con texto; compacto: solo campos y evidencia",
+          "enum": [
+            "completo",
+            "compacto"
+          ],
+          "title": "Modo",
+          "type": "string"
+        },
+        "NombreArchivo": {
+          "title": "Nombrearchivo",
+          "type": "string"
+        },
+        "RutaArchivo": {
+          "description": "Ruta relativa del archivo de origen (trazabilidad)",
+          "title": "Rutaarchivo",
+          "type": "string"
+        },
+        "TipoDocumento": {
+          "anyOf": [
+            {
+              "enum": [
+                "Predial",
+                "Alineamiento",
+                "Escritura",
+                "UsoDeSuelo"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "TipoDeclarado si existe; si no, TipoDetectado",
+          "title": "Tipodocumento"
+        },
+        "TipoDeclarado": {
+          "anyOf": [
+            {
+              "enum": [
+                "Predial",
+                "Alineamiento",
+                "Escritura",
+                "UsoDeSuelo"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Tipo indicado por el usuario o por la carpeta",
+          "title": "Tipodeclarado"
+        },
+        "TipoDetectado": {
+          "anyOf": [
+            {
+              "enum": [
+                "Predial",
+                "Alineamiento",
+                "Escritura",
+                "UsoDeSuelo"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Tipo inferido del contenido por palabras clave",
+          "title": "Tipodetectado"
+        },
+        "TextoExtraido": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Texto completo; páginas unidas con doble salto de línea (null en modo compacto)",
+          "title": "Textoextraido"
+        },
+        "Paginas": {
+          "description": "Todas las páginas (completo) o solo aquellas donde se encontró algún campo (compacto)",
+          "items": {
+            "$ref": "#/$defs/Pagina"
+          },
+          "title": "Paginas",
+          "type": "array"
+        },
+        "Estado": {
+          "enum": [
+            "ok",
+            "low_text",
+            "low_confidence",
+            "partial",
+            "error"
+          ],
+          "title": "Estado",
+          "type": "string"
+        },
+        "CalidadTexto": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Calidadtexto"
+        },
+        "NumPaginas": {
+          "title": "Numpaginas",
+          "type": "integer"
+        },
+        "Hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "SHA-256 truncado a 16 caracteres",
+          "title": "Hash"
+        },
+        "DuplicadoDe": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "RutaArchivo del documento idéntico ya procesado",
+          "title": "Duplicadode"
+        },
+        "CamposExtraidos": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Campo"
+          },
+          "title": "Camposextraidos",
+          "type": "object"
+        },
+        "Discrepancias": {
+          "description": "Problemas propios del documento (p. ej. tipo declarado != detectado)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Discrepancias",
+          "type": "array"
+        },
+        "ExpedienteId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expedienteid"
+        }
+      },
+      "required": [
+        "NombreArchivo",
+        "RutaArchivo",
+        "TipoDocumento",
+        "TipoDeclarado",
+        "TipoDetectado",
+        "TextoExtraido",
+        "Paginas",
+        "Estado",
+        "CalidadTexto",
+        "NumPaginas",
+        "Hash",
+        "DuplicadoDe"
+      ],
+      "title": "Documento",
+      "type": "object"
+    },
+    "Pagina": {
+      "additionalProperties": false,
+      "properties": {
+        "Numero": {
+          "title": "Numero",
+          "type": "integer"
+        },
+        "Texto": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Texto de la página (null en modo compacto)",
+          "title": "Texto"
+        },
+        "Metodo": {
+          "enum": [
+            "native",
+            "ocr",
+            "error"
+          ],
+          "title": "Metodo",
+          "type": "string"
+        },
+        "Motor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "tesseract | paddle | null (texto nativo del PDF)",
+          "title": "Motor"
+        },
+        "CalidadTexto": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Proporción 0..1 de tokens válidos en español",
+          "title": "Calidadtexto"
+        }
+      },
+      "required": [
+        "Numero",
+        "Texto",
+        "Metodo",
+        "Motor",
+        "CalidadTexto"
+      ],
+      "title": "Pagina",
+      "type": "object"
+    },
+    "ValorFuente": {
+      "additionalProperties": false,
+      "properties": {
+        "Documento": {
+          "description": "RutaArchivo del documento",
+          "title": "Documento",
+          "type": "string"
+        },
+        "TipoDocumento": {
+          "anyOf": [
+            {
+              "enum": [
+                "Predial",
+                "Alineamiento",
+                "Escritura",
+                "UsoDeSuelo"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tipodocumento"
+        },
+        "Valor": {
+          "title": "Valor",
+          "type": "string"
+        },
+        "Normalizado": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Normalizado"
+        },
+        "Pagina": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Pagina"
+        }
+      },
+      "required": [
+        "Documento",
+        "TipoDocumento",
+        "Valor",
+        "Normalizado",
+        "Pagina"
+      ],
+      "title": "ValorFuente",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "VersionEsquema": {
+      "default": "1.1.0",
+      "title": "Versionesquema",
+      "type": "string"
+    },
+    "Modo": {
+      "default": "completo",
+      "description": "Modo de los Documentos incluidos",
+      "enum": [
+        "completo",
+        "compacto"
+      ],
+      "title": "Modo",
+      "type": "string"
+    },
+    "ExpedienteId": {
+      "title": "Expedienteid",
+      "type": "string"
+    },
+    "CamposConsolidados": {
+      "additionalProperties": {
+        "$ref": "#/$defs/CampoConsolidado"
+      },
+      "title": "Camposconsolidados",
+      "type": "object"
+    },
+    "PuntajeMatch": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Promedio 0..1 del puntaje entre pares de documentos",
+      "title": "Puntajematch"
+    },
+    "NivelMatch": {
+      "enum": [
+        "alto",
+        "medio",
+        "bajo",
+        "sin_datos"
+      ],
+      "title": "Nivelmatch",
+      "type": "string"
+    },
+    "CamposCoinciden": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Camposcoinciden",
+      "type": "array"
+    },
+    "CamposNoCoinciden": {
+      "items": {
+        "$ref": "#/$defs/Discrepancia"
+      },
+      "title": "Camposnocoinciden",
+      "type": "array"
+    },
+    "TiposPresentes": {
+      "items": {
+        "enum": [
+          "Predial",
+          "Alineamiento",
+          "Escritura",
+          "UsoDeSuelo"
+        ],
+        "type": "string"
+      },
+      "title": "Tipospresentes",
+      "type": "array"
+    },
+    "DocumentosFaltantes": {
+      "items": {
+        "enum": [
+          "Predial",
+          "Alineamiento",
+          "Escritura",
+          "UsoDeSuelo"
+        ],
+        "type": "string"
+      },
+      "title": "Documentosfaltantes",
+      "type": "array"
+    },
+    "Alertas": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Alertas",
+      "type": "array"
+    },
+    "Comparaciones": {
+      "items": {
+        "$ref": "#/$defs/ComparacionPar"
+      },
+      "title": "Comparaciones",
+      "type": "array"
+    },
+    "Documentos": {
+      "items": {
+        "$ref": "#/$defs/Documento"
+      },
+      "title": "Documentos",
+      "type": "array"
+    }
+  },
+  "required": [
+    "ExpedienteId",
+    "CamposConsolidados",
+    "PuntajeMatch",
+    "NivelMatch",
+    "CamposCoinciden",
+    "CamposNoCoinciden",
+    "TiposPresentes",
+    "DocumentosFaltantes",
+    "Documentos"
+  ],
+  "title": "Expediente",
+  "type": "object"
+}

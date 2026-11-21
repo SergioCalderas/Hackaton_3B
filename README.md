@@ -110,6 +110,29 @@ de datos (no del front) y responde si cada uno está `APROBADO`, en `REVISION_MA
 `VOLVER_A_SUBIR`, con el motivo. Endpoints, variables de entorno y diseño en [`CLAUDE.md`](CLAUDE.md);
 detalle del filtro en [`filtro_calidad/README.md`](filtro_calidad/README.md).
 
+### Extracción y validación cruzada (Fase 2)
+
+Los documentos `APROBADO` pasan a la **extracción de campos**: clave catastral, propietario, dirección,
+número oficial, superficie, folio, fechas… Cada campo trae su página y el fragmento de texto de donde salió.
+Después se hace la **validación cruzada** entre los documentos del expediente: si la clave catastral o el
+propietario no coinciden, el semáforo queda en rojo; si difieren la superficie, el número oficial o la
+dirección, en amarillo. El semáforo lo sigue decidiendo `procesamiento/dictamen.py` y el LLM solo redacta.
+La lógica vive en [`ocr_pipeline/`](ocr_pipeline/README.md); `procesamiento/etapa_extraccion.py` y
+`procesamiento/etapa_verificacion.py` son adaptadores delgados.
+
+- **Requisito extra del backend:** Tesseract con `tessdata/` (instrucciones en `CLAUDE.md` §8).
+- **En el front:** pestaña *Filtro de documentos* → *Verificar* (ahora corre Fase 1 + Fase 2) → *Usar en
+  dictamen* en un documento de cada tipo → *Generar dictamen*. Las observaciones `VC-xx` muestran el valor
+  de cada documento.
+- **Texto extraído en la vista del caso:** al abrir un documento de un caso, debajo de Aceptar/Denegar
+  aparece *Texto extraído del documento*, con motor, calidad, páginas, valores resaltados y *Copiar texto*.
+  Si el documento aún no tiene texto, *Verificar* lo extrae. El endpoint es `GET /api/texto?ruta=…`, y el
+  texto se guarda en una caché en disco por SHA-256, no en la BD. Antes de una demo, precalienta los 39 PDF
+  de los casos con `python -m procesamiento.texto --precalentar`.
+- **Pruebas:** `python -m pytest`, sin OCR ni BD.
+- **Modo independiente** (batch, API FastAPI con `/docs` y la página de prueba `/demo`): ver
+  [`ocr_pipeline/README.md`](ocr_pipeline/README.md).
+
 ## Backend
 
 ```bash

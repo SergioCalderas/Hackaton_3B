@@ -1,0 +1,63 @@
+{
+  "additionalProperties": false,
+  "description": "Un dato extraído del texto, con su evidencia para trazabilidad.",
+  "properties": {
+    "Valor": {
+      "description": "Valor tal como aparece en el texto (limpio)",
+      "title": "Valor",
+      "type": "string"
+    },
+    "Normalizado": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Valor normalizado para comparar (mayúsculas, sin acentos, solo dígitos, ISO, m2...)",
+      "title": "Normalizado"
+    },
+    "Pagina": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Página de donde se extrajo (1-based)",
+      "title": "Pagina"
+    },
+    "Evidencia": {
+      "description": "Fragmento de texto alrededor del valor",
+      "title": "Evidencia",
+      "type": "string"
+    },
+    "Regla": {
+      "description": "Regla de extracción que lo encontró",
+      "title": "Regla",
+      "type": "string"
+    }
+  },
+  "required": [
+    "Valor",
+    "Normalizado",
+    "Pagina",
+    "Evidencia",
+    "Regla"
+  ],
+  "title": "Campo",
+  "type": "object"
+}

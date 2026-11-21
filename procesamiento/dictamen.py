@@ -20,16 +20,28 @@ import os
 
 from .observaciones import ORDEN_SEVERIDAD
 
-VERSION_DICTAMEN = "dictamen v0.1"
+VERSION_DICTAMEN = "dictamen v0.2"
 ETAPAS_COMPLETADAS = ["calidad"]
 ETAPAS_PENDIENTES = ["extraccion", "normalizacion", "validacion_cruzada", "riesgos"]
+# Con validación cruzada (Fase 2 + etapa_verificacion.py):
+ETAPAS_COMPLETADAS_VC = ["calidad", "extraccion", "validacion_cruzada"]
+ETAPAS_PENDIENTES_VC = ["riesgos"]
 
 SEMAFORO_TEXTO = {
     "GRIS": "No validado",
     "ROJO": "No cumple",
     "AMARILLO": "Requiere revisión",
-    "VERDE": "Cumple (Fase 1)",
+    "VERDE": "Cumple",
 }
+
+
+def _vc(op: dict) -> dict:
+    """Resumen de la validación cruzada ({"realizada": False} si no hay campos extraídos)."""
+    try:
+        from . import etapa_verificacion
+        return etapa_verificacion.resumen(op)
+    except Exception:  # noqa: BLE001
+        return {"realizada": False}
 
 
 # --------------------------------------------------------------------------
@@ -48,6 +60,11 @@ def semaforo(op: dict, obs: list[dict]) -> tuple[str, str]:
     relevantes = [o for o in obs if o["severidad"] in ("ALTA", "MEDIA")]
     if relevantes:
         return "AMARILLO", f"{len(relevantes)} observación(es) de severidad media o alta por revisar."
+    vc = _vc(op)
+    if vc["realizada"]:
+        return "VERDE", (f"Los documentos pasaron el filtro de calidad y sus datos coinciden entre sí "
+                         f"(validación cruzada, puntaje {vc['puntaje']:.2f}: {', '.join(vc['coinciden'])}). "
+                         "Falta la evaluación de riesgos (RG) para un dictamen definitivo.")
     return "VERDE", ("Los 4 documentos pasaron el filtro de calidad. Falta la validación cruzada "
                      "de datos (Fase 2 en adelante) para un dictamen definitivo.")
 
@@ -57,13 +74,15 @@ def semaforo(op: dict, obs: list[dict]) -> tuple[str, str]:
 # --------------------------------------------------------------------------
 def entrada_llm(op: dict, obs: list[dict]) -> dict:
     color, razon = semaforo(op, obs)
+    vc = _vc(op)
     return {
         "operacion_id": op["operacion_id"],
         "semaforo": color,
         "semaforo_texto": SEMAFORO_TEXTO[color],
         "razon_semaforo": razon,
-        "etapas_completadas": ETAPAS_COMPLETADAS,
-        "etapas_pendientes": ETAPAS_PENDIENTES,
+        "etapas_completadas": ETAPAS_COMPLETADAS_VC if vc["realizada"] else ETAPAS_COMPLETADAS,
+        "etapas_pendientes": ETAPAS_PENDIENTES_VC if vc["realizada"] else ETAPAS_PENDIENTES,
+        "validacion_cruzada": vc,
         "documentos": [
             {"tabla": t, "estado_filtro": (d.get("filtro") or {}).get("estado")
              or ("SIN_ARCHIVO" if not d.get("tiene_archivo") else "SIN_VERIFICAR")}
@@ -86,9 +105,12 @@ SISTEMA = (
     "- Basa cada afirmación en una observación de la entrada y cita su id en `observaciones_citadas`.\n"
     "- Si no hay observaciones, dilo y recuerda qué etapas siguen pendientes.\n"
     "- Las acciones sugeridas deben ser concretas (qué documento, qué hacer).\n"
-    "- Recuerda que solo se ha completado la revisión de calidad documental; no afirmes que los datos "
-    "coinciden entre documentos."
 )
+NOTA_SOLO_CALIDAD = ("- Recuerda que solo se ha completado la revisión de calidad documental; no afirmes que "
+                     "los datos coinciden entre documentos.")
+NOTA_CON_VC = ("- Ya se hizo la validación cruzada de datos (observaciones VC-xx, con los valores de cada "
+               "documento y su página). Si no hay observaciones VC, puedes decir que los datos revisados "
+               "coinciden; los riesgos (RG) siguen pendientes.")
 
 ESQUEMA = {
     "type": "object",
@@ -131,6 +153,11 @@ def _plantilla(entrada: dict, nota: str | None = None) -> dict:
             acciones.append(f"Solicitar el comprobante de pago certificado de {o['documento']}.")
         elif o["regla"] == "RG-01":
             acciones.append(f"Confirmar la vigencia de {o['documento']} o solicitar uno actualizado.")
+        elif o["codigo"] == "SIN-EXTRAER":
+            acciones.append("Volver a verificar los documentos aprobados para extraer sus campos.")
+        elif o["codigo"].startswith("VC-"):
+            acciones.append(f"Aclarar la discrepancia ({o['regla']}): {o['texto'].split(' no coincide')[0]}"
+                            " difiere entre documentos; confirmar el valor correcto con el original.")
     resumen = f"Semáforo {entrada['semaforo_texto'].lower()}: {entrada['razon_semaforo']}"
     return {"resumen": resumen, "puntos": puntos, "acciones_sugeridas": list(dict.fromkeys(acciones)),
             "origen": "plantilla", "modelo": None, "nota": nota}
@@ -168,7 +195,8 @@ def redactar(entrada: dict) -> dict:
             betas=["server-side-fallback-2026-07-01"],
             fallbacks="default",  # si el modelo declina, el servidor reintenta con el recomendado
             output_config={"effort": effort, "format": {"type": "json_schema", "schema": ESQUEMA}},
-            system=SISTEMA,
+            system=SISTEMA + (NOTA_CON_VC if "validacion_cruzada" in entrada["etapas_completadas"]
+                              else NOTA_SOLO_CALIDAD),
             messages=[{"role": "user", "content":
                        "Expediente revisado (JSON):\n" + json.dumps(entrada, ensure_ascii=False, indent=2)}],
         )

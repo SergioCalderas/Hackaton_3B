@@ -55,7 +55,9 @@ server/app.py                      Backend Flask: /api/login (tabla usuarios) + 
 procesamiento/                     Pipeline de documentos (Wendy)
   pipeline.py                        orden de etapas y contrato Documento / ResultadoEtapa
   etapa_calidad.py                   Fase 1 (envuelve filtro_calidad/)
-  etapa_extraccion.py                Fase 2 — PLANTILLA, aquí va el siguiente filtro
+  etapa_extraccion.py                Fase 2 — adaptador sobre ocr_pipeline (campos con evidencia)
+  etapa_verificacion.py              validación cruzada VC-xx del expediente -> observaciones
+  observaciones.py / dictamen.py     observaciones uniformes + semáforo determinista + LLM
   fuentes.py                         obtiene el archivo desde la BD (bytea, URL o ruta)
   api.py                             endpoints /api/documentos/... y /api/operaciones/...
   sql/propuesta.sql                  columna `archivo` + tabla filtro_resultados (NO ejecutado)
@@ -63,13 +65,22 @@ filtro_calidad/                    Fase 1 como librería + CLI + app local de pr
   filtro.py                          motor del filtro (CLI por lotes)
   config.py                          umbrales, frases clave, negativos, mensajes
   app.py                             app local para subir archivos y probar (puerto 8000)
+ocr_pipeline/                      Fase 2 + validación cruzada (Yax). Ver ocr_pipeline/README.md
+  servicio.py                        API: procesar_documento() / verificar_expediente()
+  fields.py, matching.py             extracción (regex + reglas) y comparación (rapidfuzz)
+  schemas.py                         contrato Pydantic (Documento, Campo, Expediente; VersionEsquema)
+  requirements-servidor.txt          deps para el backend (sin Paddle); las incluye server/requirements.txt
+api.py, demo/                      modo independiente: FastAPI (/documento, /expediente, /docs, /demo)
+run_ocr.py, export_json.py         modo independiente: batch sobre las 4 carpetas -> output/ (ignorado)
+tests/                             pytest (ocr_pipeline + integración con procesamiento/), sin OCR ni BD
 Escritura/ Predial/ Uso_de_suelo/ Alineamiento_y_Numero_Oficial/   documentos de prueba del reto
 public/docs/<tipo>/caso-00N.pdf    PDFs que muestra hoy el front (8 casos)
 ```
 
 Ramas: `main` (integración), `Wendy` (pipeline/filtro), `SabrinaMichaus` (front),
-`SergioCalderas` (front + BD), `YaxLira` (comparación de motores OCR: `ocr_pipeline/`, Tesseract vs Paddle),
-`AlbertoFlores` (vacía).
+`SergioCalderas` (front + BD), `YaxLira` (Fase 2 de extracción + validación cruzada: `ocr_pipeline/`,
+`procesamiento/etapa_extraccion.py`, `procesamiento/etapa_verificacion.py`; PR hacia `main`),
+`AlbertoFlores` (hoy apunta al mismo commit que una versión anterior de `YaxLira`; no tiene trabajo propio).
 
 ## 4. Base de datos (Supabase Postgres, proyecto "Hackaton")
 
@@ -120,8 +131,14 @@ Variables del servidor para el pipeline:
 | POST | `/api/dictamen` | igual, con documentos elegidos `{escrituras, predial, suelo, aliniamiento}: id` |
 | POST | `/api/operaciones/<id>/verificar` | los 4 documentos de `operacion_realizada` + completitud RF-01 (`EN_REVISION` / `NO_VALIDADO`) |
 | POST | `/api/documentos/verificar-archivo` | multipart `archivo` (+ `tipo`), solo para pruebas |
+| GET | `/api/texto?ruta=/docs/<tipo>/caso-00N.pdf` | texto extraído por página de un PDF de `public/` (vista del caso). `?tipo=` para resaltar campos, `?solo_cache=1` no corre OCR (responde `SIN_EXTRAER`) |
+| GET | `/api/documentos/<tabla>/<id>/texto` | igual, para un documento de la BD |
 
-`?hasta=calidad` corre solo la Fase 1. Respuesta: `{nombre, tabla, id, tipo_declarado, etapas, version_reglas, calidad: {...}, extraccion: {...}}`.
+`?hasta=calidad` corre solo la Fase 1 (sin él corren Fase 1 + Fase 2; el botón *Verificar* de
+`Filtro.jsx` ya corre ambas). Respuesta: `{nombre, tabla, id, tipo_declarado, etapas, version_reglas, calidad: {...}, extraccion: {...}}`.
+Campos clave de `extraccion`: `estado` (OK | SIN_CAMPOS | ERROR), `campos {campo: {valor, valor_normalizado,
+confianza, evidencia {pagina, fragmento, bbox, regla}}}`, `documento` (Documento compacto de `ocr_pipeline`,
+lo usa la validación cruzada), `calidad_texto`, `version_esquema`.
 Campos clave de `calidad`: `estado`, `motivo`, `mensaje` (texto para el usuario), `observaciones`,
 `tipo_detectado`, `legibilidad`, `confianza_ocr`, `paginas_revisadas[]`, `sha256`.
 Tablas válidas: `escrituras | predial | suelo | aliniamiento` (lista blanca, sin SQL dinámico).
@@ -138,7 +155,13 @@ Tablas válidas: `escrituras | predial | suelo | aliniamiento` (lista blanca, si
 - Tipos front → tablas: `escrituras→escrituras`, `predial→predial`, `uso_suelo→suelo`,
   `alineamiento→aliniamiento`, `numero_oficial→aliniamiento` (la BD los junta).
 - El resto del front (revisión del gestor, semáforos de validación, historial) sigue usando
-  `src/lib/seed.js` + localStorage.
+  `src/lib/seed.js` + localStorage. **Las "Validaciones" del `DocModal` son datos demo de `seed.js`.**
+- **"Texto extraído del documento"** (`src/components/TextoExtraido.jsx`, en `DocModal.jsx` debajo de
+  Aceptar/Denegar): consulta `GET /api/texto?ruta=<d.pdf>&tipo=<d.type>&solo_cache=1` (instantáneo); si no
+  hay texto, el botón *Verificar* lo extrae con OCR. Muestra motor, calidad y páginas, selector de página,
+  extracto de 1,800 caracteres con *Ver todo*, valores de los campos resaltados y *Copiar texto*.
+  Como hoy no hay operaciones, se enlaza por el PDF que muestra el caso (los 39 de `public/docs/` son copias
+  idénticas de documentos del reto, así que comparten caché con los de la BD por SHA-256).
 
 ### Observaciones y dictamen (última etapa)
 
@@ -146,9 +169,11 @@ Tablas válidas: `escrituras | predial | suelo | aliniamiento` (lista blanca, si
   `{id, tabla, documento, etapa, codigo, regla, severidad, bloquea, texto}`. Severidad CRITICA/ALTA/MEDIA/BAJA;
   códigos `FALTA-ARCHIVO`, `CAL-RECHAZO`, `CAL-COMBINADO`, `CAL-NO-COMPROBANTE`, `CAL-TIPO-DUDOSO`,
   `RIESGO-VIGENCIA` (RG-01), `RIESGO-ADEUDO`/`RIESGO-PERIODO` (RG-04), `CAL-IMAGEN`, `CAL-LECTURA`…
-  Las fases futuras (VC-xx, RG-xx) deben agregar sus hallazgos con esta misma forma.
+  La validación cruzada agrega sus hallazgos (`VC-*`, etapa `validacion_cruzada`, tabla `expediente`,
+  con `evidencia[]` de cada documento) en `de_operacion()`; los riesgos (RG-xx) deben seguir la misma forma.
 - `procesamiento/dictamen.py`: **el código decide el semáforo** (GRIS faltan/rechazados, ROJO crítico,
-  AMARILLO media/alta, VERDE solo Fase 1) y **el LLM solo redacta** con salida JSON por esquema
+  AMARILLO media/alta, VERDE sin observaciones; si hubo validación cruzada, el VERDE lo dice y
+  `etapas_completadas` incluye `extraccion` y `validacion_cruzada`) y **el LLM solo redacta** con salida JSON por esquema
   (`resumen`, `puntos[{texto, observaciones_citadas}]`, `acciones_sugeridas`). Citas a ids inexistentes se
   eliminan y el punto queda marcado `sin_evidencia`. Llamada: `client.beta.messages.create`,
   `claude-opus-5-5`, `effort=low`, `fallbacks="default"` (beta `server-side-fallback-2026-07-01`).
@@ -190,20 +215,51 @@ Calibración con los 63 documentos del reto: **54 aprobados, 6 revisión, 3 volv
 
 Límites: no prueba autenticidad (requiere QR/folio y consulta a la autoridad); no divide archivos combinados.
 
-## 7. Fase 2 — Extracción (SIGUIENTE)
+## 7. Fase 2 — Extracción y validación cruzada (HECHO)
 
-Plantilla en `procesamiento/etapa_extraccion.py`. Recibe solo documentos `APROBADO`.
+Implementadas como **adaptadores delgados** sobre `ocr_pipeline/` (toda la lógica vive ahí; ver
+`ocr_pipeline/README.md`). Diseño "el código decide": reglas deterministas, sin LLM.
 
-- `leer_paginas(doc)` devuelve texto y líneas OCR **con cajas** de todas las páginas, reutilizando la
-  caché de la Fase 1 (`procesamiento/_trabajo/.cache_ocr/`, por SHA-256). Las cajas están en píxeles
-  del render (lado mayor = 2000 px) → convertir a coordenadas PDF para la evidencia.
-- Campos por tipo (los * son obligatorios): ver docstring del módulo o sección 2 de los requerimientos.
-- Formatos fijos (predial, alineamiento, uso de suelo): regex + plantillas. Escrituras: localizar fragmentos
-  ("superficie", "comparece", "ubicado en") y mandar solo eso a un LLM barato con salida estructurada.
-- Cada campo: `valor`, `valor_normalizado`, `confianza`, `evidencia {pagina, fragmento, bbox}`.
-- Para agregar etapas: nueva función `ejecutar(doc) -> ResultadoEtapa` y añadirla a `ETAPAS` en `pipeline.py`.
+**Extracción** (`procesamiento/etapa_extraccion.py`, etapa `extraccion` en `ETAPAS`). Solo recibe documentos
+`APROBADO` (el pipeline se detiene antes si no). Bajo `CANDADO_OCR` llama a
+`ocr_pipeline.servicio.procesar_documento(ruta, tipo, nombre, modo="compacto")`:
+- OCR propio con **Tesseract `spa`** (el motor híbrido usa Paddle como respaldo solo si está instalado; en el
+  servidor no se instala, ver §8). Texto nativo del PDF si lo hay. ~3–20 s por documento además de la Fase 1.
+- Campos con evidencia: ClaveCatastral, CuentaPredial, Propietario, Vendedor, Direccion (Calle, NumeroOficial,
+  Lote, Manzana, Colonia, Municipio, Estado, CodigoPostal), SuperficieTerreno/Construccion, NumeroEscritura,
+  Volumen, Folio, FechaDocumento (ISO), EjercicioFiscal. `bbox` aún es `null` (evidencia = página + fragmento + regla).
+- El resultado va en `detalle->'extraccion'` de `filtro_resultados` (no hay columnas nuevas). **No se escriben**
+  las columnas `direccion_real`, `propietario`, `numero_oficial`, `superficie` (decisión pendiente del equipo).
+- Pendiente: reutilizar el texto de RapidOCR de la Fase 1 (`leer_paginas`) para evitar el doble OCR; las
+  reglas están calibradas con Tesseract y habría que re-validarlas.
 
-Después: normalización → validación cruzada VC → riesgos RG → evidencia → dictamen semáforo.
+**Texto extraído** (`procesamiento/texto.py`): el texto completo por página **no va a la BD**. Vive en una
+caché en disco por SHA-256 (`procesamiento/_trabajo/.cache_texto/`, ignorada por git) que llenan la Fase 2
+al extraer, los endpoints `/texto` bajo demanda, o el precalentado antes de una demo:
+`python -m procesamiento.texto --precalentar` (los 39 PDFs de `public/docs/`; los documentos largos tardan
+~2 min, p. ej. la escritura de Tepeji, 25 págs: 116 s). Los campos a resaltar se recalculan del texto en
+caché en cada consulta (sin OCR).
+
+**Validación cruzada** (`procesamiento/etapa_verificacion.py`): es por expediente, no por documento. La llama
+`observaciones.de_operacion()` con los `documento` guardados de los APROBADOS y usa
+`ocr_pipeline.servicio.verificar_expediente` (rapidfuzz, tolera errores de OCR). Regla de severidad:
+
+| Hallazgo | Regla | Severidad | Semáforo |
+|---|---|---|---|
+| ClaveCatastral / CuentaPredial distinta | VC-05 | CRITICA | ROJO |
+| Propietario distinto | VC-02 | CRITICA | ROJO |
+| SuperficieTerreno distinta | VC-03 | ALTA | AMARILLO |
+| NumeroOficial distinto | VC-04 | ALTA | AMARILLO |
+| Calle, colonia, municipio, estado, CP, lote, manzana | VC-01 | MEDIA | AMARILLO |
+| Puntaje < 0.55 o "posible documento de otro inmueble" | VC-06 | ALTA | AMARILLO |
+| Dos prediales del mismo ejercicio | VC-07 | MEDIA | AMARILLO |
+| APROBADO sin extracción (se verificó con `?hasta=calidad`) | SIN-EXTRAER | MEDIA | AMARILLO |
+
+Probado sin BD (`procesar_bytes` → observaciones → dictamen): expediente sintético base → validación
+cruzada 1.0 sin discrepancias (el semáforo queda AMARILLO solo por RG-01: la licencia de uso de suelo
+sintética venció el 03-mar-2026); expediente `v` → ROJO con VC-05, VC-02, VC-04 y VC-03.
+
+Después: normalización fina → riesgos RG → bbox en la evidencia → dictamen.
 
 ## 8. Cómo correr
 
@@ -212,8 +268,20 @@ Después: normalización → validación cruzada VC → riesgos RG → evidencia
 npm install && npm run dev                          # https://localhost:5173
 
 # Backend (login + pipeline)
-pip install -r server/requirements.txt             # incluye filtro_calidad/requirements.txt
+pip install -r server/requirements.txt             # incluye filtro_calidad/ y ocr_pipeline/requirements-servidor.txt
 python server/app.py                               # http://127.0.0.1:5000
+# La Fase 2 necesita Tesseract + tessdata/ (una vez por máquina; ver ocr_pipeline/README.md):
+#   winget install UB-Mannheim.TesseractOCR
+#   mkdir tessdata && curl -L -o tessdata/spa.traineddata https://github.com/tesseract-ocr/tessdata_best/raw/main/spa.traineddata
+#   copiar eng.traineddata y osd.traineddata de "C:\Program Files\Tesseract-OCR\tessdata\" a tessdata/
+# ⚠ No instales requirements.txt (raíz, con Paddle) en el mismo venv del servidor: Paddle trae
+#   opencv-contrib-python y el filtro opencv-python-headless; ambos instalan cv2 y se pisan.
+
+# Pruebas (sin OCR ni BD)
+python -m pytest
+
+# Antes de una demo: texto de los 39 PDFs de los casos en caché (con el venv del servidor)
+python -m procesamiento.texto --precalentar
 
 # Filtro por lotes sobre una carpeta (subcarpeta = tipo declarado)
 python filtro_calidad/filtro.py <carpeta> --salida <carpeta_salida>

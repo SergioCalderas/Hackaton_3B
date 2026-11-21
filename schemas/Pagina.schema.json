@@ -1,0 +1,63 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "Numero": {
+      "title": "Numero",
+      "type": "integer"
+    },
+    "Texto": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Texto de la página (null en modo compacto)",
+      "title": "Texto"
+    },
+    "Metodo": {
+      "enum": [
+        "native",
+        "ocr",
+        "error"
+      ],
+      "title": "Metodo",
+      "type": "string"
+    },
+    "Motor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "tesseract | paddle | null (texto nativo del PDF)",
+      "title": "Motor"
+    },
+    "CalidadTexto": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Proporción 0..1 de tokens válidos en español",
+      "title": "Calidadtexto"
+    }
+  },
+  "required": [
+    "Numero",
+    "Texto",
+    "Metodo",
+    "Motor",
+    "CalidadTexto"
+  ],
+  "title": "Pagina",
+  "type": "object"
+}
