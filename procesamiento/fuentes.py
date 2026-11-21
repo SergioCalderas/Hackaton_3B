@@ -126,6 +126,58 @@ def ids_de_operacion(operacion_id: int) -> dict[str, int | None]:
     return dict(zip(COLUMNAS_OPERACION.values(), fila))
 
 
+def resumen_operaciones(operacion_id: int | None = None) -> list[dict]:
+    """Operaciones con el último resultado guardado del filtro por documento (sin correr OCR)."""
+    col = _columna()
+    from psycopg import sql
+    try:
+        with _conectar() as conn, conn.cursor() as cur:
+            filtro = "WHERE id = %s" if operacion_id is not None else ""
+            cur.execute(f"SELECT id, escritura_id, predial_id, suelo_id, alineamiento_id, latitud, longitud, estado "
+                        f"FROM operacion_realizada {filtro} ORDER BY id",
+                        (operacion_id,) if operacion_id is not None else None)
+            ops = cur.fetchall()
+            con_archivo = {}
+            for tabla in TABLAS:
+                cur.execute(sql.SQL("SELECT id, {} IS NOT NULL FROM {}").format(sql.Identifier(col), sql.Identifier(tabla)))
+                con_archivo[tabla] = dict(cur.fetchall())
+            guardados = {}
+            try:
+                cur.execute(
+                    "SELECT DISTINCT ON (tabla, documento_id) tabla, documento_id, estado, motivo, mensaje, "
+                    "tipo_detectado, detalle->'calidad'->'observaciones', detalle->'calidad'->'legibilidad', "
+                    "detalle->'calidad'->'confianza_ocr', detalle->'calidad'->>'tipo_detectado_nombre', creado_en "
+                    "FROM filtro_resultados ORDER BY tabla, documento_id, creado_en DESC")
+                for t, d, est, mot, msg, tipo, obs, leg, conf, tipo_nom, en in cur.fetchall():
+                    guardados[(t, d)] = {"estado": est, "motivo": mot, "mensaje": msg, "tipo_detectado": tipo,
+                                         "tipo_detectado_nombre": tipo_nom, "observaciones": obs or [],
+                                         "legibilidad": leg, "confianza_ocr": conf,
+                                         "verificado_en": en.isoformat()}
+            except Exception:  # la tabla filtro_resultados aún no existe
+                conn.rollback()
+    except FuenteError:
+        raise
+    except Exception as e:
+        raise FuenteError(f"No se pudo consultar la base de datos: {e.__class__.__name__}", 503)
+
+    salida = []
+    for op_id, *doc_ids, lat, lng, semaforo in ops:
+        docs = {}
+        for tabla, doc_id in zip(COLUMNAS_OPERACION.values(), doc_ids):
+            docs[tabla] = {"id": doc_id, "tiene_archivo": bool(con_archivo[tabla].get(doc_id)),
+                           "filtro": guardados.get((tabla, doc_id))}
+        estados = [d["filtro"]["estado"] if d["filtro"] else None for d in docs.values()]
+        if all(e == "APROBADO" for e in estados):
+            expediente = "EN_REVISION"
+        elif all(e is None for e in estados) and all(d["tiene_archivo"] for d in docs.values()):
+            expediente = "SIN_VERIFICAR"
+        else:
+            expediente = "NO_VALIDADO"
+        salida.append({"operacion_id": op_id, "latitud": float(lat), "longitud": float(lng),
+                       "semaforo": semaforo, "expediente": expediente, "documentos": docs})
+    return salida
+
+
 def guardar_resultado(resultado: dict) -> None:
     """Guarda el resultado en filtro_resultados si FILTRO_GUARDAR_RESULTADOS=1.
     No rompe el flujo si la tabla no existe (solo registra el error)."""

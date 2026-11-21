@@ -279,3 +279,11 @@ summary { cursor: pointer; font-weight: 600; }
 .navy-card .pill { background: #fff; color: #000; font-weight: 900; }
 
 .slogan { font-size: 26px !important; font-weight: 900 !important; font-style: italic; }
+
+/* Filtro de calidad (Fase 1) */
+.filtro-lista { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 10px; }
+.filtro-lista li { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.filtro-lista li > div { display: flex; flex-direction: column; min-width: 0; }
+.filtro-doc .tiny { color: var(--ink-2); }
+.filtro-obs { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+.doc-main strong .pill { margin-left: 8px; vertical-align: middle; }

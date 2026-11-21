@@ -96,6 +96,8 @@ Variables del servidor para el pipeline:
 | Método | Ruta | Qué hace |
 |---|---|---|
 | GET | `/api/procesamiento/salud` | etapas activas y versión de reglas |
+| GET | `/api/operaciones` | todas las operaciones con el último resultado guardado por documento (sin OCR, ~2 s) |
+| GET | `/api/operaciones/<id>` (y GET `…/verificar`) | una operación, último resultado guardado; GET nunca vuelve a correr el filtro |
 | POST | `/api/documentos/<tabla>/<id>/verificar` | corre el pipeline sobre un documento de la BD |
 | POST | `/api/operaciones/<id>/verificar` | los 4 documentos de `operacion_realizada` + completitud RF-01 (`EN_REVISION` / `NO_VALIDADO`) |
 | POST | `/api/documentos/verificar-archivo` | multipart `archivo` (+ `tipo`), solo para pruebas |
@@ -104,6 +106,23 @@ Variables del servidor para el pipeline:
 Campos clave de `calidad`: `estado`, `motivo`, `mensaje` (texto para el usuario), `observaciones`,
 `tipo_detectado`, `legibilidad`, `confianza_ocr`, `paginas_revisadas[]`, `sha256`.
 Tablas válidas: `escrituras | predial | suelo | aliniamiento` (lista blanca, sin SQL dinámico).
+
+### Front ↔ pipeline
+
+`src/lib/filtro.jsx` (`FiltroProvider`, `useFiltro`) consulta `GET /api/operaciones` al iniciar y
+`POST /api/operaciones/<id>/verificar?hasta=calidad` con el botón **Verificar documentos**.
+- Caso del front `cN` ↔ `operacion_realizada.id = N` (los 8 casos se cargaron en ese orden).
+- Tipos front → tablas: `escrituras→escrituras`, `predial→predial`, `uso_suelo→suelo`,
+  `alineamiento→aliniamiento`, `numero_oficial→aliniamiento` (la BD los junta).
+- UI: tarjeta "Filtro de calidad · Fase 1" en `CaseDetail.jsx` (estado del expediente + por documento),
+  etiqueta por documento en la lista y bloque con mensaje/observaciones en `DocModal.jsx`.
+- El resto del front (revisión del gestor, semáforos de validación, historial) sigue usando
+  `src/lib/seed.js` + localStorage.
+
+Datos cargados en la BD (21-nov-2026): 8 operaciones con sus 4 documentos; `archivo` apunta a
+`public/docs/<tipo>/caso-00N.pdf` (caso 5 sin uso de suelo). `numero_oficial='S/N'` y `superficie=0`
+son **provisionales** hasta que la Fase 2 los extraiga. Conexión: en redes sin IPv6 usar el
+**Session pooler** de Supabase (`aws-1-us-east-1.pooler.supabase.com`), no `db.<ref>.supabase.co`.
 
 ## 6. Fase 1 — Filtro de calidad (HECHO)
 

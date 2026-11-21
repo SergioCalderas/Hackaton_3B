@@ -1,6 +1,8 @@
 """Endpoints del pipeline. server/app.py los registra (Vite hace proxy de /api al puerto 5000).
 
   GET  /api/procesamiento/salud
+  GET  /api/operaciones                              lista + último resultado guardado por documento (sin OCR)
+  GET  /api/operaciones/<id>                         una operación (también responde en GET .../verificar)
   POST /api/documentos/<tabla>/<id>/verificar        tabla: escrituras | predial | suelo | aliniamiento
   POST /api/operaciones/<id>/verificar               los 4 documentos de operacion_realizada + completitud
   POST /api/documentos/verificar-archivo             multipart (campo "archivo", opcional "tipo"); solo pruebas
@@ -68,6 +70,24 @@ def verificar_operacion(operacion_id: int):
         aprobados=aprobados, volver_a_subir=volver, faltantes=faltantes,
         documentos=documentos,
     )
+
+
+@bp.get("/operaciones")
+def listar_operaciones():
+    """Operaciones con el último resultado guardado del filtro (rápido, no corre OCR)."""
+    return jsonify(fuentes.resumen_operaciones())
+
+
+@bp.get("/operaciones/<int:operacion_id>")
+@bp.get("/operaciones/<int:operacion_id>/verificar")
+def ver_operacion(operacion_id: int):
+    """GET no vuelve a correr el filtro: devuelve lo último guardado.
+    Para correrlo de nuevo: POST /api/operaciones/<id>/verificar."""
+    datos = fuentes.resumen_operaciones(operacion_id)
+    if not datos:
+        return jsonify(error=f"No existe la operación {operacion_id}."), 404
+    return jsonify({**datos[0], "nota": "Resultado guardado. Para volver a verificar usa POST en "
+                                        f"/api/operaciones/{operacion_id}/verificar."})
 
 
 @bp.post("/documentos/verificar-archivo")

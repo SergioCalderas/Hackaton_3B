@@ -4,6 +4,59 @@ import { Card, Dot, MapCard, Pill, ReasonModal, Steps } from '../components/ui.j
 import DocModal from '../components/DocModal.jsx';
 import { CHECKS, DOC_TYPES } from '../lib/seed.js';
 import { TOTAL_DOCS, approvedCount, canAcceptCase, caseStatus, docSemaphore, docState, docsOf, fmtDate, fmtVigencia, vigenciaVencida } from '../lib/selectors.js';
+import { EXPEDIENTE_LABEL, FiltroPill, useFiltro } from '../lib/filtro.jsx';
+
+const TIPOS_BD = [
+  ['escrituras', 'Escrituras'],
+  ['predial', 'Predial'],
+  ['alineamiento', 'Alineamiento y Núm. Oficial'],
+  ['uso_suelo', 'Uso de suelo'],
+];
+
+function FiltroCard({ caseId }) {
+  const f = useFiltro(caseId);
+  const exp = f.op ? f.op.expediente : null;
+  const tone = { EN_REVISION: 'green', NO_VALIDADO: 'red', SIN_VERIFICAR: 'amber' }[exp] || 'amber';
+  const ultima = f.op && Object.values(f.op.documentos).map((d) => d.filtro && d.filtro.verificado_en).filter(Boolean).sort().pop();
+  return (
+    <Card title="Filtro de calidad · Fase 1">
+      {!f.op ? (
+        <p className="muted small">{f.error ? `No se pudo consultar el filtro: ${f.error}` : `Sin operación en la base de datos para este caso.`}</p>
+      ) : (
+        <>
+          <p className={`notice notice-${tone}`} style={{ marginTop: 0 }}>
+            <strong>{EXPEDIENTE_LABEL[exp]}</strong>
+            <br /><span className="tiny">Operación #{f.opId}{ultima ? ` · verificado ${fmtDate(ultima)}` : ''}</span>
+          </p>
+          <ul className="filtro-lista">
+            {TIPOS_BD.map(([tipo, label]) => {
+              const d = f.docDe(tipo);
+              return (
+                <li key={tipo}>
+                  <div>
+                    <strong>{label}</strong>
+                    {d && d.filtro && d.estado !== 'APROBADO' && <span className="muted tiny">{d.filtro.mensaje}</span>}
+                    {d && !d.tiene_archivo && <span className="muted tiny">La operación no tiene archivo para este documento.</span>}
+                  </div>
+                  {d && <FiltroPill estado={d.estado} />}
+                </li>
+              );
+            })}
+          </ul>
+          <button className="btn btn-yellow btn-sm" disabled={f.corriendo} onClick={f.verificar}>
+            {f.corriendo ? 'Verificando… (≈1 min la primera vez)' : 'Verificar documentos'}
+          </button>
+          {f.error && <p className="notice notice-red small">{f.error}</p>}
+        </>
+      )}
+    </Card>
+  );
+}
+
+function FiltroDocPill({ caseId, tipo }) {
+  const d = useFiltro(caseId).docDe(tipo);
+  return d ? <FiltroPill estado={d.estado} /> : null;
+}
 
 export default function CaseDetail({ caseId, onBack }) {
   const { state, dispatch } = useStore();
@@ -48,7 +101,7 @@ export default function CaseDetail({ caseId, onBack }) {
               return (
                 <div key={d.id} className={`doc-row ${st === 'rechazado' ? 'locked' : ''}`}>
                   <div className="doc-main">
-                    <strong>{t.label}</strong>
+                    <strong>{t.label} <FiltroDocPill caseId={caseId} tipo={t.key} /></strong>
                     <span className="muted small">{d.file} · v{d.versions[d.versions.length - 1].v}</span>
                     {d.vigencia && (
                       <span className={`vig ${vigenciaVencida(d.vigencia) ? 'vig-off' : 'vig-on'}`}>
@@ -74,6 +127,7 @@ export default function CaseDetail({ caseId, onBack }) {
         </Card>
 
         <div className="span-4 stack-col">
+          <FiltroCard caseId={caseId} />
           <Card title="Decisión de prefactibilidad">
             {c.decision ? (
               <div className={`decision decision-${c.decision.value}`}>
