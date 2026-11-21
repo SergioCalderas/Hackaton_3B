@@ -3,8 +3,10 @@
 Diferencias con ocr_pipeline.pipeline.process_document (que procesa página por página):
   * Todas las páginas de TODOS los documentos comparten un pool de hilos: cada hilo lanza un
     proceso tesseract.exe con OMP_THREAD_LIMIT=1, así se usan todos los núcleos.
-  * La página se renderiza en escala de grises a PGM (sin PNG ni conversión RGB) y se manda a OCR
-    en cuanto está lista (render y OCR se solapan).
+  * La página se renderiza a PPM en color (sin compresión) y se manda a OCR en cuanto está lista
+    (render y OCR se solapan). Color y no gris: con la conversión a gris de PyMuPDF algunas fotos
+    (p. ej. public/docs/predial/caso-002.pdf) quedan sin contraste y Tesseract no lee nada; desde RGB
+    lee ~1,400 caracteres. Cuesta ~30 % más tiempo de OCR.
   * Idioma spa_fast y 250 DPI por defecto: en la escritura de 25 páginas de Tepeji, 13 s contra
     ~140 s del motor en serie, con la misma calidad de texto (0.885 vs 0.878 de palabras válidas).
 La salida es un `Documento` (ocr_pipeline/schemas.py) con CamposExtraidos por reglas (regex).
@@ -93,11 +95,10 @@ def _ocr_imagen(img: Path, lang: str, tessdata: Path) -> str:
     return r.stdout.decode("utf-8", "ignore").strip()
 
 
-def _guardar_pgm_imagen(path: Path, destino: Path) -> None:
+def _guardar_ppm_imagen(path: Path, destino: Path) -> None:
     import cv2
 
-    gray = cv2.cvtColor(load_image_file(path), cv2.COLOR_BGR2GRAY)
-    ok, buf = cv2.imencode(".pgm", gray)
+    ok, buf = cv2.imencode(".ppm", load_image_file(path))   # color: ver nota del módulo
     if not ok:
         raise RuntimeError("No se pudo convertir la imagen")
     buf.tofile(str(destino))
@@ -122,8 +123,8 @@ def _ocr_crudo(path: Path, nombre: str, sha: str, aj: Ajustes) -> tuple[dict, st
     with tempfile.TemporaryDirectory(prefix="ocr3b_") as tmp:
         if ext in IMAGE_EXTENSIONS:
             meta["num_pages"] = 1
-            destino = Path(tmp) / "p0001.pgm"
-            _guardar_pgm_imagen(path, destino)
+            destino = Path(tmp) / "p0001.ppm"
+            _guardar_ppm_imagen(path, destino)
             textos[1] = pool.submit(_ocr_imagen, destino, lang, tessdata)
         elif ext in PDF_EXTENSIONS:
             with _render_lock:
@@ -139,8 +140,8 @@ def _ocr_crudo(path: Path, nombre: str, sha: str, aj: Ajustes) -> tuple[dict, st
                         if useful_chars(nativo) >= 50:      # misma regla que el pipeline del equipo
                             textos[i + 1] = nativo.strip()
                             continue
-                        destino = Path(tmp) / f"p{i + 1:04d}.pgm"
-                        page.get_pixmap(dpi=aj.ocr_dpi, colorspace=fitz.csGRAY, alpha=False).save(str(destino))
+                        destino = Path(tmp) / f"p{i + 1:04d}.ppm"
+                        page.get_pixmap(dpi=aj.ocr_dpi, colorspace=fitz.csRGB, alpha=False).save(str(destino))
                     textos[i + 1] = pool.submit(_ocr_imagen, destino, lang, tessdata)
                 except Exception as e:  # noqa: BLE001 - una página dañada no tumba el documento
                     fallo: Future = Future()
@@ -183,7 +184,7 @@ def _ocr_crudo(path: Path, nombre: str, sha: str, aj: Ajustes) -> tuple[dict, st
 
 
 def _clave_cache(sha: str, aj: Ajustes) -> str:
-    return f"{sha[:24]}_{aj.ocr_idioma}_{aj.ocr_dpi}"
+    return f"{sha[:24]}_{aj.ocr_idioma}_{aj.ocr_dpi}_rgb"     # _rgb: invalida la caché del render en gris
 
 
 def ocr_documento(ruta: str | Path, nombre: str | None = None, tipo_declarado: str | None = None,

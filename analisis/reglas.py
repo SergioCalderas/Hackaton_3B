@@ -137,10 +137,39 @@ def calcular_vencimiento(expedicion, vigencia, vencimiento) -> tuple[date | None
 # ---------------------------------------------------------------------------------------
 # Reglas
 # ---------------------------------------------------------------------------------------
+def rechazado(d: DocumentoAnalizado) -> bool:
+    """El filtro de calidad (Fase 1) pidió volver a subirlo: no cuenta como documento recibido."""
+    return (d.calidad or {}).get("estado") == "VOLVER_A_SUBIR"
+
+
+def regla_filtro_calidad(docs: list[DocumentoAnalizado]) -> list[Hallazgo]:
+    """Fase 1 del equipo: ¿cada archivo es un documento válido y legible del tipo esperado?"""
+    out = []
+    for d in docs:
+        c = d.calidad
+        if not c:
+            continue
+        rid, nombre = f"calidad:{d.nombre_archivo}", f"Documento válido (filtro de calidad): {_nombre(d)}"
+        obs = "; ".join(c.get("observaciones") or [])
+        if c.get("estado") == "APROBADO":
+            out.append(_h(rid, nombre, "calidad", "cumple", "info",
+                          f"{d.nombre_archivo} pasó el filtro de calidad" + (f" ({obs})." if obs else "."), [_ev_doc(d)]))
+        elif c.get("estado") == "VOLVER_A_SUBIR":
+            out.append(_h(rid, nombre, "calidad", "no_cumple", "critica",
+                          f"{d.nombre_archivo} no es un documento válido ({c.get('motivo')}): {c.get('mensaje')}",
+                          [_ev_doc(d)]))
+        else:
+            out.append(_h(rid, nombre, "calidad", "revisar", "revision",
+                          f"{d.nombre_archivo} requiere revisión manual ({c.get('motivo')}): {c.get('mensaje')}",
+                          [_ev_doc(d)]))
+    return out
+
+
 def regla_completitud(docs: list[DocumentoAnalizado]) -> list[Hallazgo]:
     out = []
     for t in TIPOS:
-        de_tipo = [d for d in docs if d.tipo == t]
+        rechazados = [d for d in docs if d.tipo == t and rechazado(d)]
+        de_tipo = [d for d in docs if d.tipo == t and not rechazado(d)]
         if de_tipo:
             out.append(_h(f"completitud:{t}", f"Documento presente: {NOMBRE_TIPO[t]}", "completitud", "cumple", "info",
                           f"Se recibió {NOMBRE_TIPO[t]} ({', '.join(d.nombre_archivo for d in de_tipo)}).",
@@ -150,8 +179,11 @@ def regla_completitud(docs: list[DocumentoAnalizado]) -> list[Hallazgo]:
                               "informativo", "info", f"Hay {len(de_tipo)} documentos de tipo {NOMBRE_TIPO[t]}; "
                               "se consideran todos en la validación.", [_ev_doc(d) for d in de_tipo]))
         else:
+            extra = (f" El archivo recibido ({', '.join(d.nombre_archivo for d in rechazados)}) no pasó el filtro "
+                     "de calidad y hay que volver a subirlo." if rechazados else "")
             out.append(_h(f"completitud:{t}", f"Documento faltante: {NOMBRE_TIPO[t]}", "completitud", "no_cumple",
-                          "critica", f"Falta {NOMBRE_TIPO[t]}, uno de los 4 documentos mínimos del expediente."))
+                          "critica", f"Falta {NOMBRE_TIPO[t]}, uno de los 4 documentos mínimos del expediente.{extra}",
+                          [_ev_doc(d) for d in rechazados]))
     for d in docs:
         if d.tipo is None:
             out.append(_h(f"completitud:sin_tipo:{d.nombre_archivo}", "Documento no identificado", "completitud",
@@ -167,7 +199,7 @@ def regla_completitud(docs: list[DocumentoAnalizado]) -> list[Hallazgo]:
 def regla_legibilidad(docs: list[DocumentoAnalizado]) -> list[Hallazgo]:
     out = []
     for d in docs:
-        if not d.tipo:
+        if not d.tipo or rechazado(d):
             continue
         encontrados = [c for c in CAMPOS_CLAVE[d.tipo] if c in d.campos]
         mala_calidad = d.estado_ocr in ("low_text", "low_confidence", "error", "partial")
@@ -507,7 +539,8 @@ def regla_acuerdo_agentes(docs: list[DocumentoAnalizado]) -> list[Hallazgo]:
 # Orquestación del validador
 # ---------------------------------------------------------------------------------------
 def validar(docs: list[DocumentoAnalizado], ocr: dict[str, dict], aj: Ajustes) -> list[Hallazgo]:
-    hallazgos = (regla_completitud(docs) + regla_legibilidad(docs) + regla_otro_inmueble(docs)
+    todos, docs = docs, [d for d in docs if not rechazado(d)]   # los rechazados por la Fase 1 no se comparan
+    hallazgos = (regla_completitud(todos) + regla_filtro_calidad(todos) + regla_legibilidad(docs) + regla_otro_inmueble(docs)
                  + regla_campos_cruzados(docs, aj) + regla_titular_tramites(docs) + regla_uso_suelo(docs, ocr, aj)
                  + regla_vigencias(docs, aj) + regla_predial(docs, aj) + regla_alineamiento(docs)
                  + regla_acuerdo_agentes(docs))
@@ -521,6 +554,18 @@ def decidir_estado(hallazgos: list[Hallazgo]) -> str:
     if any(h.resultado in ("no_cumple", "revisar") for h in hallazgos):
         return "Requiere revisión"
     return "Cumple"
+
+
+SEMAFORO_TEXTO = {"GRIS": "No validado", "ROJO": "No cumple", "AMARILLO": "Requiere revisión", "VERDE": "Cumple"}
+
+
+def semaforo(estado: str, hallazgos: list[Hallazgo]) -> tuple[str, str]:
+    """Semáforo de main (procesamiento/dictamen.py): GRIS si faltan documentos o hay que volver a subirlos."""
+    if any(h.categoria == "completitud" and h.resultado == "no_cumple" for h in hallazgos) or             any(h.categoria == "calidad" and h.resultado == "no_cumple" for h in hallazgos):
+        color = "GRIS"
+    else:
+        color = {"No cumple": "ROJO", "Requiere revisión": "AMARILLO", "Cumple": "VERDE"}[estado]
+    return color, SEMAFORO_TEXTO[color]
 
 
 def calcular_confianza(docs: list[DocumentoAnalizado], hallazgos: list[Hallazgo]) -> tuple[float, str, dict]:

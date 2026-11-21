@@ -27,6 +27,7 @@ def ocr_falso(monkeypatch):
         return enriquecer_documento(hacer_documento(PREDIAL, tipo, nombre_original or "x.pdf"))
 
     monkeypatch.setattr(servicio, "procesar_documento", falso)
+    monkeypatch.setenv("OCR_MOTOR", "serial")   # texto.ocr_completo usa el motor serial (el simulado)
     if "procesamiento.pipeline" not in sys.modules:  # sin rapidocr: candado simulado
         try:
             import procesamiento.pipeline  # noqa: F401

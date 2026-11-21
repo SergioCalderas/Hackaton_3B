@@ -66,7 +66,11 @@ def simulado(monkeypatch):
         monkeypatch.setattr(dictamen_mod, "llm_estructurado", fab)
         monkeypatch.setattr(grafo_mod, "ocr_documento", ocr_falso)
         monkeypatch.setattr(grafo_mod, "estado_ollama", lambda aj: {"modelo_cargado": True})
+        monkeypatch.setattr(grafo_mod.calidad_mod, "evaluar", lambda ruta, nombre, tipo: CALIDAD.get(nombre))
     return usar
+
+
+CALIDAD: dict[str, dict] = {}    # resultado simulado de la Fase 1 por archivo (vacío = filtro no disponible)
 
 
 ARCHIVOS = [{"ruta": n, "nombre": n, "tipo": t} for n, t in
@@ -136,3 +140,26 @@ def test_archivo_danado_no_tumba_el_expediente(simulado):
     assert uso["estado_ocr"] == "error" and uso["tipo"] == "UsoDeSuelo"
     assert any(h["categoria"] == "legibilidad" and "danado.pdf" in h["descripcion"] for h in res["hallazgos"])
     assert res["estado"] == "Requiere revisión"
+
+
+def test_filtro_de_calidad_rechaza_y_excluye_de_la_validacion(simulado, monkeypatch):
+    simulado()
+    monkeypatch.setitem(CALIDAD, "Predial/a.pdf", {"estado": "VOLVER_A_SUBIR", "motivo": "otro_documento",
+                                                   "mensaje": "Es un recibo de luz, no una boleta predial."})
+    monkeypatch.setitem(CALIDAD, "Escritura/a.pdf", {"estado": "APROBADO", "motivo": None, "mensaje": "Documento válido."})
+    res = grafo_mod.analizar_expediente(ARCHIVOS, AJ)
+    # el documento rechazado no participa en la validación cruzada (sus datos no se comparan)
+    assert not any(h["categoria"] == "consistencia" and "Predial" in h["descripcion"] for h in res["hallazgos"])
+    assert res["semaforo"] == "GRIS" and res["semaforo_texto"] == "No validado"
+    assert "Predial" in res["documentos_faltantes"]
+    falta = next(h for h in res["hallazgos"] if h["id"] == "completitud:Predial")
+    assert "volver a subirlo" in falta["descripcion"]
+    assert any(h["categoria"] == "calidad" and h["resultado"] == "cumple" for h in res["hallazgos"])
+    pred = next(d for d in res["documentos"] if d["ruta_archivo"] == "Predial/a.pdf")
+    assert pred["calidad"]["estado"] == "VOLVER_A_SUBIR" and pred["tipo"] == "Predial"
+
+
+def test_semaforo_sin_filtro_sigue_el_estado(simulado):
+    simulado()
+    res = grafo_mod.analizar_expediente(ARCHIVOS, AJ)
+    assert res["estado"] == "No cumple" and res["semaforo"] == "ROJO"

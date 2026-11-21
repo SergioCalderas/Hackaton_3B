@@ -157,13 +157,14 @@ class DocumentoAnalizado(_Salida):
     paginas_enviadas_llm: list[int] = Field(default_factory=list)
     campos: dict[str, CampoExtraido] = Field(default_factory=dict)
     error_llm: Optional[str] = None
+    calidad: Optional[dict] = Field(None, description="Fase 1 (filtro de calidad del equipo): estado, motivo, mensaje…")
     tiempos: dict[str, float] = Field(default_factory=dict)
 
 
 class Hallazgo(_Salida):
     id: str
     regla: str
-    categoria: Literal["completitud", "legibilidad", "identificacion", "consistencia", "vigencia", "uso_suelo",
+    categoria: Literal["completitud", "calidad", "legibilidad", "identificacion", "consistencia", "vigencia", "uso_suelo",
                        "alineamiento", "predial", "extraccion"]
     resultado: Literal["cumple", "no_cumple", "revisar", "informativo"]
     severidad: Literal["critica", "revision", "info"]
@@ -175,6 +176,9 @@ class ResultadoExpediente(_Salida):
     version: str = VERSION_ANALISIS
     expediente_id: str
     estado: EstadoExpediente
+    semaforo: Literal["VERDE", "AMARILLO", "ROJO", "GRIS"] = Field(
+        "GRIS", description="Semáforo de main: GRIS = no validado (faltan documentos o hay que volver a subirlos)")
+    semaforo_texto: str = ""
     estado_reglas: EstadoExpediente
     estado_llm: Optional[EstadoExpediente] = None
     confianza: float

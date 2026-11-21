@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import logging
+from concurrent.futures import ThreadPoolExecutor
 import operator
 import time
 from pathlib import Path
@@ -31,7 +32,9 @@ from .config import Ajustes
 from .dictamen import dictaminar
 from .esquemas import NOMBRE_TIPO, TIPOS, DocumentoAnalizado, Hallazgo, ResultadoExpediente
 from .llm import estado_ollama, precalentar
+from . import calidad as calidad_mod
 from .ocr_rapido import ocr_documento
+from ocr_pipeline.matching import canonical_tipo
 
 log = logging.getLogger("analisis")
 
@@ -46,13 +49,18 @@ def _aj(config: RunnableConfig) -> Ajustes:
 # ---------------------------------------------------------------------------------------
 # Subgrafo por documento
 # ---------------------------------------------------------------------------------------
+def _acumular(previo, nuevo) -> list:
+    return (previo or []) + (nuevo if isinstance(nuevo, list) else [nuevo])
+
+
 class EstadoDocumento(TypedDict, total=False):
     archivo: dict                   # {"ruta", "nombre", "tipo"}
     doc_ocr: dict                   # Documento (contrato de ocr_pipeline) con campos por reglas
     info_ocr: dict
+    calidad_futuro: object          # Future con el resultado de la Fase 1 (filtro de calidad del equipo)
     tipo: Optional[str]
     clasificacion: str
-    evento: dict                    # para mostrar progreso (no sale del subgrafo)
+    evento: Annotated[list, _acumular]  # progreso (no sale del subgrafo); calidad y OCR escriben a la vez
     documentos: Annotated[list[dict], operator.add]   # salida hacia el grafo principal
 
 
@@ -79,6 +87,20 @@ def agente_ocr(state: EstadoDocumento, config: RunnableConfig) -> dict:
                        "paginas": doc["NumPaginas"], "calidad": doc.get("CalidadTexto"), "estado": doc["Estado"]}}
 
 
+_pool_calidad = ThreadPoolExecutor(max_workers=8, thread_name_prefix="calidad")
+
+
+def agente_calidad(state: EstadoDocumento, config: RunnableConfig) -> dict:
+    """Fase 1 del equipo: ¿es un documento válido del tipo esperado?
+
+    Se lanza en segundo plano y NO bloquea la extracción (el filtro usa un candado del equipo y con
+    5 documentos sumaba ~20 s de espera). Su resultado se une al terminar el documento (_salida):
+    un documento VOLVER_A_SUBIR queda fuera de la validación cruzada y cuenta como faltante."""
+    a = state["archivo"]
+    futuro = _pool_calidad.submit(calidad_mod.evaluar, a["ruta"], a["nombre"], canonical_tipo(a.get("tipo")))
+    return {"calidad_futuro": futuro}
+
+
 def agente_clasificador(state: EstadoDocumento, config: RunnableConfig) -> dict:
     t0 = time.perf_counter()
     tipo, metodo = agentes.clasificar(state["doc_ocr"], _aj(config))
@@ -94,6 +116,11 @@ def _ruta_extractor(state: EstadoDocumento) -> str:
 def _salida(state: EstadoDocumento, analizado: DocumentoAnalizado) -> dict:
     analizado.tiempos["ocr_s"] = state["info_ocr"]["ocr_s"]
     analizado.tiempos["ocr_cache"] = float(state["info_ocr"]["cache"])
+    futuro = state.get("calidad_futuro")
+    try:
+        analizado.calidad = futuro.result(timeout=120) if futuro else None
+    except Exception as e:  # noqa: BLE001 - sin filtro el análisis sigue
+        log.warning("Filtro de calidad sin resultado: %s", e)
     return {"documentos": [{"analizado": analizado.model_dump(), "ocr": state["doc_ocr"],
                             "clasificacion": state.get("clasificacion")}],
             "evento": {"archivo": state["archivo"]["nombre"], "etapa": "extraccion", "tipo": analizado.tipo,
@@ -112,17 +139,22 @@ def sin_tipo(state: EstadoDocumento) -> dict:
     return _salida(state, agentes.documento_sin_tipo(state["doc_ocr"], state.get("clasificacion", "")))
 
 
+FINALES = [*EXTRACTORES.values(), "sin_tipo"]
+
+
 def construir_subgrafo():
     g = StateGraph(EstadoDocumento)
+    g.add_node("agente_calidad", agente_calidad)
     g.add_node("agente_ocr", agente_ocr)
     g.add_node("agente_clasificador", agente_clasificador)
     for tipo, nombre in EXTRACTORES.items():
         g.add_node(nombre, _extractor(tipo))
     g.add_node("sin_tipo", sin_tipo)
-    g.add_edge(START, "agente_ocr")
+    g.add_edge(START, "agente_calidad")          # lanza la Fase 1 en segundo plano
+    g.add_edge("agente_calidad", "agente_ocr")
     g.add_edge("agente_ocr", "agente_clasificador")
-    g.add_conditional_edges("agente_clasificador", _ruta_extractor, [*EXTRACTORES.values(), "sin_tipo"])
-    for nombre in [*EXTRACTORES.values(), "sin_tipo"]:
+    g.add_conditional_edges("agente_clasificador", _ruta_extractor, FINALES)
+    for nombre in FINALES:
         g.add_edge(nombre, END)
     return g.compile()
 
@@ -168,7 +200,7 @@ def dictaminador(state: EstadoGrafo, config: RunnableConfig) -> dict:
     docs.sort(key=lambda d: orden.get(d.ruta_archivo, 99))
     hallazgos = [Hallazgo.model_validate(h) for h in state["hallazgos"]]
     estado_reglas = reglas.decidir_estado(hallazgos)
-    recibidos = [t for t in TIPOS if any(d.tipo == t for d in docs)]
+    recibidos = [t for t in TIPOS if any(d.tipo == t and not reglas.rechazado(d) for d in docs)]
     dic = dictaminar(estado_reglas, hallazgos, recibidos, aj, time.perf_counter() - t_inicio)
     conf, nivel, factores = reglas.calcular_confianza(docs, hallazgos)
     tiempos = {
@@ -179,9 +211,11 @@ def dictaminador(state: EstadoGrafo, config: RunnableConfig) -> dict:
         "dictamen_s": dic["dictamen_s"],
         "paginas": float(sum(d.num_paginas for d in docs)),
     }
+    color, color_texto = reglas.semaforo(dic["estado"], hallazgos)
     res = ResultadoExpediente(
         expediente_id=_expediente_id(docs, [x["ocr"] for x in state["documentos"]]),
-        estado=dic["estado"], estado_reglas=estado_reglas, estado_llm=dic["estado_llm"],
+        estado=dic["estado"], semaforo=color, semaforo_texto=color_texto,
+        estado_reglas=estado_reglas, estado_llm=dic["estado_llm"],
         confianza=conf, nivel_confianza=nivel, factores_confianza=factores,
         resumen=dic["resumen"], observaciones=dic["observaciones"], dictamen_por=dic["dictamen_por"],
         uso_requerido=aj.uso_requerido, fecha_referencia=aj.fecha_referencia.isoformat(),
@@ -237,6 +271,16 @@ def _normalizar_archivos(archivos) -> list[dict]:
             out.append({"ruta": str(ruta), "nombre": Path(ruta).name, "tipo": tipo})
         else:
             out.append({"ruta": str(a), "nombre": Path(a).name, "tipo": None})
+    unicos, vistos = [], set()
+    for a in out:   # el mismo archivo dos veces (p. ej. alineamiento y número oficial): se analiza una vez
+        try:
+            h = hashlib.sha256(Path(a["ruta"]).read_bytes()).hexdigest()
+        except OSError:
+            h = a["ruta"]
+        if h not in vistos:
+            vistos.add(h)
+            unicos.append(a)
+    out = unicos
     nombres = [a["nombre"] for a in out]
     for a in out:  # nombres repetidos: se distinguen para la trazabilidad
         if nombres.count(a["nombre"]) > 1:

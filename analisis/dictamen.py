@@ -25,6 +25,7 @@ SEGUNDOS_RESERVA_DICTAMEN = 12.0
 
 ACCION = {
     "completitud": "Solicitar el documento faltante o corregir el tipo de documento entregado.",
+    "calidad": "Volver a subir el documento que no pasó el filtro de calidad.",
     "legibilidad": "Solicitar una copia legible del documento.",
     "identificacion": "Confirmar que todos los documentos correspondan al mismo inmueble.",
     "consistencia": "Aclarar con el propietario las diferencias de datos entre documentos.",

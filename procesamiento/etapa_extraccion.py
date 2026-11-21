@@ -1,7 +1,8 @@
 """Fase 2: extracción de campos. Adaptador delgado sobre ocr_pipeline (módulo de Yax).
 
 Llega aquí solo un documento APROBADO por la Fase 1 (el pipeline se detiene antes si no).
-Toda la lógica vive en ocr_pipeline.servicio.procesar_documento: OCR (Tesseract; Paddle opcional),
+El OCR es el paralelo de analisis/ocr_rapido.py (texto.ocr_completo; motor serial de respaldo) y
+la extracción de campos la de ocr_pipeline: OCR (Tesseract),
 campos con evidencia, detección de tipo y calidad del texto. Aquí solo se traduce la entrada y
 la salida al contrato del pipeline. Ver ocr_pipeline/README.md.
 
@@ -58,18 +59,15 @@ def ejecutar(doc):
 
     from ocr_pipeline.matching import aplicar_modo
     from ocr_pipeline.schemas import VERSION_ESQUEMA
-    from ocr_pipeline.servicio import procesar_documento
-
     from . import texto
-    from .pipeline import CANDADO_OCR, ResultadoEtapa
+    from .pipeline import ResultadoEtapa
 
     t0 = time.time()
     calidad = doc.resultados.get("calidad", {})
     tipo = doc.tipo_declarado or calidad.get("tipo_detectado")
     try:
-        with CANDADO_OCR:  # una etapa con OCR a la vez (convención del pipeline)
-            completo = procesar_documento(doc.ruta, TIPO_OCR.get(tipo), nombre_original=nombre_trazable(doc),
-                                          modo="completo")
+        # OCR paralelo de analisis/ (texto.ocr_completo); cae al motor serial si no está disponible
+        completo = texto.ocr_completo(Path(doc.ruta), TIPO_OCR.get(tipo), nombre_trazable(doc))
         # El texto por página va a la caché en disco (texto.py), no a la BD; a la BD va el modo compacto.
         try:
             texto.guardar_cache(hashlib.sha256(Path(doc.ruta).read_bytes()).hexdigest(), completo)

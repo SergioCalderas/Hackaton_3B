@@ -19,7 +19,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-VERSION_TEXTO = "texto v1"
+VERSION_TEXTO = "texto v2"   # v2: OCR paralelo (analisis/ocr_rapido.py) en color
 RAIZ_REPO = Path(__file__).resolve().parents[1]
 DIR_CACHE = Path(__file__).resolve().parent / "_trabajo" / ".cache_texto"
 DIR_PUBLICO = RAIZ_REPO / "public"
@@ -113,16 +113,34 @@ def de_bytes(contenido: bytes, nombre: str, tipo: str | None = None, generar: bo
         return {"estado": "SIN_EXTRAER", "sha256": sha, "nombre": nombre,
                 "mensaje": "Aún no se ha extraído el texto de este documento."}
 
-    from ocr_pipeline.servicio import procesar_documento
-    from .pipeline import CANDADO_OCR
-
     with tempfile.TemporaryDirectory(prefix="texto_") as tmp:
         ruta = Path(tmp) / (Path(nombre).name or "documento.pdf")
         ruta.write_bytes(contenido)
-        with CANDADO_OCR:  # una etapa con OCR a la vez (convención del pipeline)
-            doc = procesar_documento(ruta, TIPO_OCR.get(tipo or ""), nombre_original=Path(nombre).name, modo="completo")
+        doc = ocr_completo(ruta, TIPO_OCR.get(tipo or ""), Path(nombre).name)
     datos = guardar_cache(sha, doc)
     return respuesta(datos, tipo, "ocr", time.time() - t0)
+
+
+def ocr_completo(ruta: Path, tipo_ocr: str | None, nombre: str) -> dict:
+    """Documento de ocr_pipeline en modo completo (texto por página + campos por reglas).
+
+    Usa el OCR paralelo de analisis/ocr_rapido.py: todas las páginas a la vez en todos los núcleos,
+    Tesseract spa_fast a 250 DPI (~10x más rápido que el motor serial con la misma calidad de texto;
+    la escritura de Tepeji de 25 págs. baja de 116 s a ~13 s). Mismo contrato `Documento`.
+    Si analisis/ no está disponible, cae al motor serial de ocr_pipeline (OCR_MOTOR=serial lo fuerza).
+    """
+    if os.environ.get("OCR_MOTOR", "paralelo").strip().lower() != "serial":
+        try:
+            from analisis.ocr_rapido import ocr_documento
+        except ImportError as e:
+            print(f"[texto] OCR paralelo no disponible ({e}); se usa el motor serial.", flush=True)
+        else:
+            return ocr_documento(ruta, nombre, tipo_ocr)[0]
+    from ocr_pipeline.servicio import procesar_documento
+    from .pipeline import CANDADO_OCR
+
+    with CANDADO_OCR:  # el motor serial no es seguro entre hilos
+        return procesar_documento(ruta, tipo_ocr, nombre_original=nombre, modo="completo")
 
 
 def ruta_publica(ruta: str) -> Path:
@@ -146,20 +164,27 @@ def de_ruta_publica(ruta: str, tipo: str | None = None, generar: bool = True) ->
 # ---------------------------------------------------------------------------
 # Precalentado (antes de una demo): python -m procesamiento.texto --precalentar
 # ---------------------------------------------------------------------------
-def precalentar(carpeta: Path = DIR_PUBLICO / "docs") -> None:
-    """Genera la caché de texto de todos los documentos de public/docs/<tipo>/ (el tipo sale de la carpeta)."""
+def precalentar(carpeta: Path = DIR_PUBLICO / "docs", forzar: bool = False) -> None:
+    """Genera la caché de texto de todos los documentos de public/docs/<tipo>/ (el tipo sale de la carpeta).
+
+    Los documentos se procesan de uno en uno, pero cada uno usa todos los núcleos (páginas en paralelo).
+    forzar=True ignora la caché y vuelve a extraer (útil al cambiar de motor de OCR)."""
     archivos = sorted(p for p in carpeta.rglob("*") if p.suffix.lower() in EXTENSIONES)
     print(f"Precalentando {len(archivos)} documentos en {carpeta} -> {DIR_CACHE}", flush=True)
-    t_total = time.time()
+    t_total, paginas = time.time(), 0
     for i, p in enumerate(archivos, 1):
         tipo = p.parent.name
         try:
-            r = de_bytes(p.read_bytes(), p.name, tipo)
+            contenido = p.read_bytes()
+            if forzar:
+                _ruta_cache(hashlib.sha256(contenido).hexdigest()).unlink(missing_ok=True)
+            r = de_bytes(contenido, p.name, tipo)
+            paginas += r["num_paginas"] or 0
             print(f"[{i:>2}/{len(archivos)}] {r['origen']:<5} {r['segundos']:>6.1f}s  {p.relative_to(carpeta).as_posix():<40} "
-                  f"págs={r['num_paginas']} calidad={r['calidad_texto']}", flush=True)
+                  f"págs={r['num_paginas']} calidad={r['calidad_texto']} motor={','.join(r['motores'])}", flush=True)
         except Exception as e:  # noqa: BLE001 — seguir con los demás
             print(f"[{i:>2}/{len(archivos)}] ERROR {p.relative_to(carpeta).as_posix()}: {e.__class__.__name__}: {e}", flush=True)
-    print(f"Listo en {(time.time() - t_total) / 60:.1f} min.", flush=True)
+    print(f"Listo en {(time.time() - t_total) / 60:.1f} min ({paginas} páginas).", flush=True)
 
 
 if __name__ == "__main__":
@@ -170,8 +195,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--precalentar", action="store_true", help="Generar la caché de texto de public/docs/")
     ap.add_argument("--carpeta", type=Path, default=DIR_PUBLICO / "docs")
+    ap.add_argument("--forzar", action="store_true", help="Volver a extraer aunque ya haya caché")
     args = ap.parse_args()
     if args.precalentar:
-        precalentar(args.carpeta)
+        precalentar(args.carpeta, args.forzar)
     else:
         ap.print_help()

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../store.jsx';
 import { Card, Dot, MapCard, Pill, ReasonModal, Steps } from '../components/ui.jsx';
 import DocModal from '../components/DocModal.jsx';
+import AnalisisIA from '../components/AnalisisIA.jsx';
 import { CHECKS, DOC_TYPES } from '../lib/seed.js';
 import { TOTAL_DOCS, approvedCount, canAcceptCase, caseStatus, docSemaphore, docState, docsOf, fmtDate, fmtVigencia, vigenciaVencida } from '../lib/selectors.js';
 import { EXPEDIENTE_LABEL, FiltroPill, useFiltro } from '../lib/filtro.jsx';
@@ -96,7 +97,8 @@ export default function CaseDetail({ caseId, onBack }) {
       </Card>
 
       <div className="grid">
-        <Card className="span-8" title="Documentación">
+        <div className="span-8 stack-col">
+        <Card title="Documentación">
           <div className="doc-list">
             {DOC_TYPES.map((t) => {
               const d = ds.find((x) => x.type === t.key);
@@ -129,6 +131,8 @@ export default function CaseDetail({ caseId, onBack }) {
             })}
           </div>
         </Card>
+        <AnalisisIA caseId={caseId} docs={ds} />
+        </div>
 
         <div className="span-4 stack-col">
           <FiltroCard caseId={caseId} />
